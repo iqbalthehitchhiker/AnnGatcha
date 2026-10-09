@@ -166,97 +166,140 @@ function logit(p) {
 }
 
 /**
- * Resolve a fight between two entities (FR-S5)
- * Returns outcome and the pick result for trace
+ * Resolve a fight between character and opponent (FR-S5, FR-S8)
+ * Per flee amendment: char/opp explicit, flee means character escaped
+ * Returns outcome entries for picker.js to record as a pick
  * 
- * @param {number} effStrA - A's effective strength
- * @param {number} spdA - A's speed (after wounded)
- * @param {number} durA - A's durability (after wounded)
- * @param {string[]} tagsA - A's tags
- * @param {number} effStrB - B's effective strength
- * @param {number} spdB - B's speed (after wounded)
- * @param {number} durB - B's durability (after wounded)
- * @param {string[]} tagsB - B's tags
- * @param {() => number} rng - RNG function
+ * @param {number} effStrChar - Character's effective strength
+ * @param {number} spdChar - Character's speed (after wounded)
+ * @param {number} durChar - Character's durability (after wounded)
+ * @param {string[]} tagsChar - Character's tags
+ * @param {number} effStrOpp - Opponent's effective strength
+ * @param {number} spdOpp - Opponent's speed (after wounded)
+ * @param {number} durOpp - Opponent's durability (after wounded)
+ * @param {string[]} tagsOpp - Opponent's tags
  * @param {any} data - Game data
- * @returns {{outcome: string, draw: number, prob: number}} Fight result
+ * @returns {{entries: Array<{id: string, weight: number}>, harmClass: string}} Outcome entries and harm class
  */
-export function resolveFight(effStrA, spdA, durA, tagsA, effStrB, spdB, durB, tagsB, rng, data) {
+export function resolveFight(effStrChar, spdChar, durChar, tagsChar, effStrOpp, spdOpp, durOpp, tagsOpp, data) {
   const config = data.config;
   
-  const aCanHarmB = canHarm(effStrA, durB, tagsA, tagsB, data);
-  const bCanHarmA = canHarm(effStrB, durA, tagsB, tagsA, data);
+  const charCanHarmOpp = canHarm(effStrChar, durOpp, tagsChar, tagsOpp, data);
+  const oppCanHarmChar = canHarm(effStrOpp, durChar, tagsOpp, tagsChar, data);
+  
+  // Determine harm class for meta field
+  let harmClass;
+  if (!charCanHarmOpp && !oppCanHarmChar) {
+    harmClass = 'neither';
+  } else if (charCanHarmOpp && oppCanHarmChar) {
+    harmClass = 'both';
+  } else {
+    harmClass = 'one-sided';
+  }
   
   // Case 1: Neither can harm (stalemate procedure, FR-S6)
-  if (!aCanHarmB && !bCanHarmA) {
-    return resolveStalemate(spdA, spdB, data, rng);
+  if (!charCanHarmOpp && !oppCanHarmChar) {
+    return resolveStalemate(spdChar, spdOpp, harmClass, data);
   }
   
-  // Case 2: One-sided
-  if (aCanHarmB && !bCanHarmA) {
-    // A can harm B, B cannot harm A
-    // B tries to flee
-    const speedGap = spdB - spdA;
+  // Case 2: One-sided (FR-S5.2)
+  if (charCanHarmOpp && !oppCanHarmChar) {
+    // Character can harm opponent, opponent cannot harm character
+    // Opponent is the harmed side (H), character is the harming side (S)
+    const speedGap = spdOpp - spdChar; // H's speed - S's speed
     if (speedGap > config.speedGapFlee) {
-      // Deterministic flee
-      return { outcome: 'flee', draw: 0, prob: 1.0 };
+      // H is the opponent and faster: standoff (opponent escapes)
+      return {
+        entries: [{ id: 'standoff', weight: 1 }],
+        harmClass
+      };
     } else {
-      // Rout: A wins with probability (1 - minOdds)
-      const draw = rng();
+      // Rout: character wins with probability (1 - minOdds)
       const pWin = 1 - config.minOdds;
-      const outcome = draw < pWin ? 'win' : 'lose';
-      return { outcome, draw, prob: outcome === 'win' ? pWin : config.minOdds };
+      return {
+        entries: [
+          { id: 'win', weight: pWin },
+          { id: 'lose', weight: config.minOdds }
+        ],
+        harmClass
+      };
     }
   }
   
-  if (bCanHarmA && !aCanHarmB) {
-    // B can harm A, A cannot harm B
-    // A tries to flee
-    const speedGap = spdA - spdB;
+  if (oppCanHarmChar && !charCanHarmOpp) {
+    // Opponent can harm character, character cannot harm opponent
+    // Character is the harmed side (H), opponent is the harming side (S)
+    const speedGap = spdChar - spdOpp; // H's speed - S's speed
     if (speedGap > config.speedGapFlee) {
-      // Deterministic flee
-      return { outcome: 'flee', draw: 0, prob: 1.0 };
+      // H is the character and faster: flee (character escapes)
+      return {
+        entries: [{ id: 'flee', weight: 1 }],
+        harmClass
+      };
     } else {
-      // Rout: B wins with probability (1 - minOdds)
-      const draw = rng();
+      // Rout: opponent wins with probability (1 - minOdds)
       const pLose = 1 - config.minOdds;
-      const outcome = draw < pLose ? 'lose' : 'win';
-      return { outcome, draw, prob: outcome === 'lose' ? pLose : config.minOdds };
+      return {
+        entries: [
+          { id: 'lose', weight: pLose },
+          { id: 'win', weight: config.minOdds }
+        ],
+        harmClass
+      };
     }
   }
   
-  // Case 3: Both can harm
-  const diff = ((effStrA - durB) - (effStrB - durA)) / 2 + 
-               config.speedWeight * (spdA - spdB);
+  // Case 3: Both can harm (FR-S5.3)
+  const diff = ((effStrChar - durOpp) - (effStrOpp - durChar)) / 2 + 
+               config.speedWeight * (spdChar - spdOpp);
   const pWin = logistic(config.checkSteepness * diff);
   const pWinClamped = Math.max(config.minOdds, Math.min(pWin, 1 - config.minOdds));
   
-  const draw = rng();
-  const outcome = draw < pWinClamped ? 'win' : 'lose';
-  
-  return { outcome, draw, prob: outcome === 'win' ? pWinClamped : 1 - pWinClamped };
+  return {
+    entries: [
+      { id: 'win', weight: pWinClamped },
+      { id: 'lose', weight: 1 - pWinClamped }
+    ],
+    harmClass
+  };
 }
 
 /**
  * Resolve stalemate (FR-S6)
- * (a) If speed gap exceeds speedGapFlee, faster side flees
+ * (a) If speed gap exceeds speedGapFlee, faster side disengages:
+ *     flee if character is faster, standoff if opponent is faster
  * (b) Otherwise standoff
  * 
- * @param {number} spdA - A's speed
- * @param {number} spdB - B's speed
+ * @param {number} spdChar - Character's speed
+ * @param {number} spdOpp - Opponent's speed
+ * @param {string} harmClass - Harm class for meta field
  * @param {any} data - Game data
- * @param {() => number} _rng - RNG function (unused but kept for consistency)
- * @returns {{outcome: string, draw: number, prob: number}} Stalemate result
+ * @returns {{entries: Array<{id: string, weight: number}>, harmClass: string}} Outcome entries for picker
  */
-function resolveStalemate(spdA, spdB, data, _rng) {
-  const speedGap = Math.abs(spdA - spdB);
+function resolveStalemate(spdChar, spdOpp, harmClass, data) {
+  const speedGap = Math.abs(spdChar - spdOpp);
   
   if (speedGap > data.config.speedGapFlee) {
     // Faster side disengages
-    return { outcome: 'flee', draw: 0, prob: 1.0 };
+    if (spdChar > spdOpp) {
+      // Character is faster: flee
+      return {
+        entries: [{ id: 'flee', weight: 1 }],
+        harmClass
+      };
+    } else {
+      // Opponent is faster: standoff
+      return {
+        entries: [{ id: 'standoff', weight: 1 }],
+        harmClass
+      };
+    }
   } else {
-    // Standoff
-    return { outcome: 'standoff', draw: 0, prob: 1.0 };
+    // Neither side is significantly faster: standoff
+    return {
+      entries: [{ id: 'standoff', weight: 1 }],
+      harmClass
+    };
   }
 }
 

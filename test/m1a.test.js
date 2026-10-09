@@ -6,6 +6,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { generateRun } from '../src/core/run.js';
 import { validate } from '../src/core/validate.js';
+import { pick } from '../src/core/picker.js';
 import { 
   calculateEffectiveStrength, 
   canHarm, 
@@ -27,6 +28,20 @@ const projectRoot = join(__dirname, '..');
  */
 function L(tier, frac = 0.5) {
   return (10 - tier) + frac;
+}
+
+/**
+ * Test-only helper: picks from fight resolution entries
+ */
+function resolveFightAndPick(effStrChar, spdChar, durChar, tagsChar, effStrOpp, spdOpp, durOpp, tagsOpp, rng, data) {
+  const resolution = resolveFight(effStrChar, spdChar, durChar, tagsChar, effStrOpp, spdOpp, durOpp, tagsOpp, data);
+  const result = pick(resolution.entries, rng, 'test_fight');
+  return {
+    outcome: result.pickedId,
+    draw: result.draw,
+    prob: result.table.find(e => e.id === result.pickedId).prob,
+    harmClass: resolution.harmClass
+  };
 }
 
 function loadData() {
@@ -65,7 +80,7 @@ describe('M1a Acceptance Tests', () => {
       let lastProb = 0;
       
       for (const str of strengths) {
-        const result = resolveFight(
+        const result = resolveFightAndPick(
           str, L(5), L(5), [], // Character
           opponent.str, opponent.spd, opponent.dur, opponent.tags,
           rng, data
@@ -88,7 +103,7 @@ describe('M1a Acceptance Tests', () => {
       let lastProb = 0;
       
       for (const dur of durabilities) {
-        const result = resolveFight(
+        const result = resolveFightAndPick(
           charStr, L(5), L(5), [],
           L(5), L(5), dur, [],
           rng, data
@@ -119,7 +134,7 @@ describe('M1a Acceptance Tests', () => {
       const expectedDiff = ((charStr - oppDur) - (oppStr - charDur)) / 2;
       expect(expectedDiff).toBeCloseTo(2.2, 1);
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         charStr, speed, charDur, [],
         oppStr, speed, oppDur, [],
         rng, data
@@ -144,7 +159,7 @@ describe('M1a Acceptance Tests', () => {
       const expectedDiff = ((charStr - oppDur) - (oppStr - charDur)) / 2;
       expect(expectedDiff).toBeCloseTo(-2.2, 1);
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         charStr, speed, charDur, [],
         oppStr, speed, oppDur, [],
         rng, data
@@ -161,7 +176,7 @@ describe('M1a Acceptance Tests', () => {
       // Perfectly symmetric: all stats equal
       const level = L(5); // tier 5
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         level, level, level, [],
         level, level, level, [],
         rng, data
@@ -304,7 +319,7 @@ describe('M1a Acceptance Tests', () => {
         const oppSpd = Math.random() * 11;
         const oppDur = Math.random() * 11;
         
-        const result = resolveFight(
+        const result = resolveFightAndPick(
           charStr, charSpd, charDur, [],
           oppStr, oppSpd, oppDur, [],
           rng, data
@@ -334,7 +349,7 @@ describe('M1a Acceptance Tests', () => {
       const charSpd = L(5, 0.5);
       const oppSpd = charSpd - speedGapFlee - 0.5;
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         charStr, charSpd, charDur, [],
         oppStr, oppSpd, oppDur, [],
         rng, data
@@ -391,7 +406,7 @@ describe('M1a Acceptance Tests', () => {
       const oppSpd = charSpd - speedGapFlee - 0.5; // Slower by > speedGapFlee
       const oppDur = L(2);         // tier 8, strong
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         charStr, charSpd, charDur, [],
         oppStr, oppSpd, oppDur, [],
         rng, data
@@ -417,7 +432,7 @@ describe('M1a Acceptance Tests', () => {
       const oppSpd = L(5, 0.4);    // tier 5, small speed gap
       const oppDur = L(2);         // tier 8, strong
       
-      const result = resolveFight(
+      const result = resolveFightAndPick(
         charStr, charSpd, charDur, [],
         oppStr, oppSpd, oppDur, [],
         rng, data

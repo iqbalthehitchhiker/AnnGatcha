@@ -268,8 +268,8 @@ function executeContest(scenarioId, stepId, step, context) {
   const durOpp = opponent.dur;
   const tagsOpp = getOpponentTags(opponent);
   
-  // Resolve fight
-  const result = resolveFight(
+  // Resolve fight - returns entries for picker and harm class for meta
+  const fightResolution = resolveFight(
     effStrChar,
     effectiveStatsChar.spd,
     effectiveStatsChar.dur,
@@ -278,13 +278,15 @@ function executeContest(scenarioId, stepId, step, context) {
     spdOpp,
     durOpp,
     tagsOpp,
-    context.rng,
     data
   );
   
-  // Add to trace
+  // Pick outcome via picker.js - every outcome is a pick with real draw
   const stageId = `scenario:${scenarioId}:${stepId}`;
-  context.trace.push({
+  const pickedOutcome = pick(fightResolution.entries, context.rng, stageId);
+  
+  // Add to trace with optional meta field for harm class
+  const traceEntry = {
     stageId,
     stepType: 'contest',
     mode: step.mode,
@@ -295,17 +297,22 @@ function executeContest(scenarioId, stepId, step, context) {
     oppEffStr: effStrOpp,
     oppSpd: spdOpp,
     oppDur: durOpp,
-    outcome: result.outcome,
-    draw: result.draw,
-    prob: result.prob
-  });
+    table: pickedOutcome.table,
+    pickedId: pickedOutcome.pickedId,
+    draw: pickedOutcome.draw
+  };
+  
+  // Add meta field for M1a+ (not for M0)
+  traceEntry.meta = { harmClass: fightResolution.harmClass };
+  
+  context.trace.push(traceEntry);
   
   // If outcome is standoff and this opponent isn't already a rival, bind it
-  if (result.outcome === 'standoff') {
+  if (pickedOutcome.pickedId === 'standoff') {
     bindings['rival'] = opponent;
   }
   
-  return step.next[result.outcome];
+  return step.next[pickedOutcome.pickedId];
 }
 
 /**
