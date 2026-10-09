@@ -1,5 +1,4 @@
 {
-  "_comment": "M1a PLACEHOLDER CONTENT - one scenario per band minimum",
   "do_nothing": {
     "name": "[PLACEHOLDER] Do Nothing",
     "bands": ["10-9", "8-7", "6-4", "3-2", "1-0"],

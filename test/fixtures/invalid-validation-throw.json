@@ -1,0 +1,40 @@
+{
+  "config": {
+    "harmMargin": 0.5,
+    "speedGapFlee": 1.0,
+    "speedWeight": 0.1,
+    "checkSteepness": 2.0,
+    "minOdds": 0.02,
+    "weaponPenalty": 1.0,
+    "bands": {
+      "10-9": [10, 9]
+    }
+  },
+  "races": {
+    "human": {
+      "weight": 1,
+      "tags": [],
+      "archetypes": {
+        "warrior": 1
+      },
+      "sizes": null,
+      "tierWeights": null,
+      "weaponChance": 0
+    }
+  },
+  "archetypes": {
+    "warrior": {
+      "poolTags": []
+    }
+  },
+  "sizes": {},
+  "traits": {},
+  "powers": {},
+  "tags": {},
+  "weapons": {
+    "types": {},
+    "enchantments": {}
+  },
+  "pools": {},
+  "scenarios": {}
+}

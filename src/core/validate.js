@@ -18,110 +18,57 @@ export function validate(data) {
   const errors = [];
   const warnings = [];
 
-  try {
-    // Validate basic structure
-    if (!data.config) errors.push('Missing config');
-    if (!data.races) errors.push('Missing races');
-    if (!data.archetypes) errors.push('Missing archetypes');
-    if (!data.sizes) errors.push('Missing sizes');
-    if (!data.traits) errors.push('Missing traits');
-    if (!data.powers) errors.push('Missing powers');
-    if (!data.tags) errors.push('Missing tags');
-    if (!data.weapons) errors.push('Missing weapons');
-    if (!data.pools) errors.push('Missing pools');
-    if (!data.scenarios) errors.push('Missing scenarios');
+  // Validate basic structure
+  if (!data.config) errors.push('Missing config');
+  if (!data.races) errors.push('Missing races');
+  if (!data.archetypes) errors.push('Missing archetypes');
+  if (!data.sizes) errors.push('Missing sizes');
+  if (!data.traits) errors.push('Missing traits');
+  if (!data.powers) errors.push('Missing powers');
+  if (!data.tags) errors.push('Missing tags');
+  if (!data.weapons) errors.push('Missing weapons');
+  if (!data.pools) errors.push('Missing pools');
+  if (!data.scenarios) errors.push('Missing scenarios');
 
-    if (errors.length > 0) {
-      return { valid: false, errors, warnings };
-    }
-
-    // Validate weights are positive
-    try {
-      validatePositiveWeights(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validatePositiveWeights: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate referenced IDs exist
-    try {
-      validateReferences(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateReferences: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate powers have tags
-    try {
-      validatePowerTags(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validatePowerTags: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate unknown tags aren't referenced
-    try {
-      validateKnownTags(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateKnownTags: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate race x archetype paths don't yield empty tables
-    try {
-      validateRaceArchetypePaths(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateRaceArchetypePaths: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate band scenario requirements (FR-X3)
-    try {
-      validateBandScenarios(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateBandScenarios: ${err instanceof Error ? err.message : String(err)}`);
-    }
-    
-    // Validate scenario availability per band across effStr range (FR-X3, M1a)
-    try {
-      validateScenarioAvailabilityAcrossEffStr(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateScenarioAvailabilityAcrossEffStr: ${err instanceof Error ? err.message : String(err)}`);
-    }
-    
-    // Validate durability-free scenarios per band (FR-X7)
-    try {
-      validateDurabilityFreeScenarios(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateDurabilityFreeScenarios: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate carried tags
-    try {
-      validateCarriedTags(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateCarriedTags: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate scenario graphs
-    try {
-      validateScenarioGraphs(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateScenarioGraphs: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate stats are used
-    try {
-      validateStatsUsed(data, errors);
-    } catch (err) {
-      errors.push(`Validation error in validateStatsUsed: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    // Validate percentiles.json if present
-    try {
-      validatePercentiles(data, warnings);
-    } catch (err) {
-      warnings.push(`Warning in validatePercentiles: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-  } catch (err) {
-    errors.push(`Validation error: ${err instanceof Error ? err.message : String(err)}`);
+  if (errors.length > 0) {
+    return { valid: false, errors, warnings };
   }
+
+  // Validate weights are positive
+  validatePositiveWeights(data, errors);
+
+  // Validate referenced IDs exist
+  validateReferences(data, errors);
+
+  // Validate powers have tags
+  validatePowerTags(data, errors);
+
+  // Validate unknown tags aren't referenced
+  validateKnownTags(data, errors);
+
+  // Validate race x archetype paths don't yield empty tables
+  validateRaceArchetypePaths(data, errors);
+
+  // Validate band scenario requirements (FR-X3)
+  validateBandScenarios(data, errors);
+  
+  // Validate scenario availability per band across effStr range (FR-X3, M1a)
+  validateScenarioAvailabilityAcrossEffStr(data, errors);
+  
+  // Validate durability-free scenarios per band (FR-X7)
+  validateDurabilityFreeScenarios(data, errors);
+
+  // Validate carried tags
+  validateCarriedTags(data, errors);
+
+  // Validate scenario graphs
+  validateScenarioGraphs(data, errors);
+
+  // Validate stats are used
+  validateStatsUsed(data, errors);
+
+  // Validate percentiles.json if present
+  validatePercentiles(data, warnings);
 
   return {
     valid: errors.length === 0,
@@ -228,9 +175,6 @@ function validateReferences(data, errors) {
  */
 function validatePowerTags(data, errors) {
   for (const [id, power] of Object.entries(data.powers)) {
-    // Skip comment fields
-    if (id === '_comment' || !power || typeof power !== 'object') continue;
-    
     if (!power.tags || power.tags.length === 0) {
       errors.push(`Power ${id} has no tags`);
     }
@@ -589,7 +533,7 @@ function getReachableTagSetsForBand(data, band) {
   if (!bandTiers) return tagSets;
   
   // For each race-archetype combination
-  for (const [raceId, race] of Object.entries(data.races ||{})) {
+  for (const race of Object.values(data.races ||{})) {
     if (!race || !race.archetypes) continue;
     
     for (const archetypeId of Object.keys(race.archetypes)) {
@@ -636,7 +580,7 @@ function getReachableTagSetsForBand(data, band) {
       
       // Power tags (sample - get all possible power tags from pool)
       const poolTags = archetype.poolTags || [];
-      for (const [powerId, power] of Object.entries(data.powers || {})) {
+      for (const power of Object.values(data.powers || {})) {
         if (!power || !power.tags) continue;
         if (power.tags.some(t => poolTags.includes(t))) {
           for (const tag of power.tags) {

@@ -245,10 +245,10 @@ export function resolveFight(effStrA, spdA, durA, tagsA, effStrB, spdB, durB, ta
  * @param {number} spdA - A's speed
  * @param {number} spdB - B's speed
  * @param {any} data - Game data
- * @param {() => number} rng - RNG function (unused but kept for consistency)
+ * @param {() => number} _rng - RNG function (unused but kept for consistency)
  * @returns {{outcome: string, draw: number, prob: number}} Stalemate result
  */
-function resolveStalemate(spdA, spdB, data, rng) {
+function resolveStalemate(spdA, spdB, data, _rng) {
   const speedGap = Math.abs(spdA - spdB);
   
   if (speedGap > data.config.speedGapFlee) {

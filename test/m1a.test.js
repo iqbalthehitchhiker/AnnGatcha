@@ -255,8 +255,7 @@ describe('M1a Acceptance Tests', () => {
       const data = loadData();
       
       // Test band calculation
-      const effStr = 3.0; // Should be band 3-2 (bandTier = 10 - 3 = 7... wait)
-      // bandTier = 10 - floor(3.0) = 10 - 3 = 7
+      // bandTier = 10 - floor(effStr)
       // Band 3-2 has tiers [3, 2]
       // So we need bandTier to be 3 or 2
       // bandTier = 2 means floor(effStr) = 8, so effStr in [8, 9)
@@ -276,7 +275,7 @@ describe('M1a Acceptance Tests', () => {
       );
       
       // Check that at least one is weapon-friendly (no contest)
-      const weaponFriendly = scenariosInBand.filter(([id, s]) => {
+      const weaponFriendly = scenariosInBand.filter(([_id, s]) => {
         let hasContest = false;
         for (const step of Object.values(s.steps)) {
           if (step.type === 'contest') {

@@ -62,6 +62,7 @@ export function executeScenario(scenarioId, character, carriedTags, data, rng, i
   let finalText = '';
   let emittedTags = [];
   
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const step = scenario.steps[currentStep];
     if (!step) {
