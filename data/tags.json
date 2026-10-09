@@ -1,0 +1,64 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT",
+  "physical": {
+    "name": "Physical"
+  },
+  "combat": {
+    "name": "Combat"
+  },
+  "magic": {
+    "name": "Magic"
+  },
+  "cosmic": {
+    "name": "Cosmic"
+  },
+  "fire": {
+    "name": "Fire"
+  },
+  "storm": {
+    "name": "Storm"
+  },
+  "destruction": {
+    "name": "Destruction"
+  },
+  "mortal": {
+    "name": "Mortal"
+  },
+  "fey": {
+    "name": "Fey"
+  },
+  "draconic": {
+    "name": "Draconic"
+  },
+  "divine": {
+    "name": "Divine"
+  },
+  "soul_severing": {
+    "name": "Soul-Severing",
+    "bypassesDurability": true,
+    "counters": ["physical_immunity"]
+  },
+  "physical_immunity": {
+    "name": "Physical Immunity"
+  },
+  "wounded": {
+    "name": "Wounded",
+    "carried": true,
+    "effect": {
+      "allStats": -1.0
+    }
+  },
+  "rival": {
+    "name": "Rival",
+    "carried": true
+  },
+  "blade": {
+    "name": "Blade"
+  },
+  "magic_weapon": {
+    "name": "Magic Weapon"
+  },
+  "legendary": {
+    "name": "Legendary"
+  }
+}

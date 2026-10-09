@@ -1,0 +1,492 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT - one scenario per band minimum",
+  "do_nothing": {
+    "name": "[PLACEHOLDER] Do Nothing",
+    "bands": ["10-9", "8-7", "6-4", "3-2", "1-0"],
+    "weight": 5,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "idle",
+    "steps": {
+      "idle": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You rest and do nothing of note.",
+        "emits": []
+      }
+    }
+  },
+  "street_fight": {
+    "name": "[PLACEHOLDER] Street Fight",
+    "bands": ["10-9"],
+    "weight": 10,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "pick",
+    "steps": {
+      "pick": {
+        "type": "pick",
+        "pool": "basic_opponents",
+        "bind": "opponent",
+        "next": "fight"
+      },
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "opponent",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You defeat your opponent.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You are defeated.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You escape.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Neither side gains advantage.",
+        "emits": ["rival"]
+      }
+    }
+  },
+  "assassination": {
+    "name": "[PLACEHOLDER] Assassination",
+    "bands": ["10-9"],
+    "weight": 8,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "check",
+    "steps": {
+      "check": {
+        "type": "check",
+        "stat": "speed",
+        "difficulty": 10.0,
+        "baseOdds": 0.5,
+        "next": {
+          "success": "success",
+          "fail": "fail"
+        }
+      },
+      "success": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You complete the hit undetected.",
+        "emits": []
+      },
+      "fail": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The target escapes.",
+        "emits": []
+      }
+    }
+  },
+  "urban_brawl": {
+    "name": "[PLACEHOLDER] Urban Brawl",
+    "bands": ["8-7"],
+    "weight": 10,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "pick",
+    "steps": {
+      "pick": {
+        "type": "pick",
+        "pool": "basic_opponents",
+        "bind": "opponent",
+        "next": "fight"
+      },
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "opponent",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You win the fight.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You lose the fight.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You flee.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Stalemate.",
+        "emits": ["rival"]
+      }
+    }
+  },
+  "heist": {
+    "name": "[PLACEHOLDER] Heist",
+    "bands": ["8-7"],
+    "weight": 8,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "check",
+    "steps": {
+      "check": {
+        "type": "check",
+        "stat": "speed",
+        "difficulty": 8.0,
+        "baseOdds": 0.5,
+        "next": {
+          "success": "success",
+          "fail": "fail"
+        }
+      },
+      "success": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You steal the prize.",
+        "emits": []
+      },
+      "fail": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You are caught.",
+        "emits": []
+      }
+    }
+  },
+  "demon_duel": {
+    "name": "[PLACEHOLDER] Demon Duel",
+    "bands": ["6-4"],
+    "weight": 10,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "pick",
+    "steps": {
+      "pick": {
+        "type": "pick",
+        "pool": "midtier_opponents",
+        "bind": "opponent",
+        "next": "fight"
+      },
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "opponent",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You vanquish the demon.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The demon defeats you.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You retreat.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The battle is inconclusive.",
+        "emits": ["rival"]
+      }
+    }
+  },
+  "ambush": {
+    "name": "[PLACEHOLDER] Ambush",
+    "bands": ["6-4"],
+    "weight": 8,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "check",
+    "steps": {
+      "check": {
+        "type": "check",
+        "stat": "speed",
+        "difficulty": 5.0,
+        "baseOdds": 0.5,
+        "next": {
+          "success": "success",
+          "fail": "fail"
+        }
+      },
+      "success": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Your ambush succeeds.",
+        "emits": []
+      },
+      "fail": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Your ambush fails.",
+        "emits": []
+      }
+    }
+  },
+  "challenge_god": {
+    "name": "[PLACEHOLDER] Challenge a God",
+    "bands": ["3-2"],
+    "weight": 10,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "pick",
+    "steps": {
+      "pick": {
+        "type": "pick",
+        "pool": "gods",
+        "bind": "opponent",
+        "next": "fight"
+      },
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "opponent",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You slay the god.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The god destroys you.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You escape the god.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The god respects your strength.",
+        "emits": ["rival"]
+      }
+    }
+  },
+  "infiltrate_fortress": {
+    "name": "[PLACEHOLDER] Infiltrate Divine Fortress",
+    "bands": ["3-2"],
+    "weight": 8,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "check",
+    "steps": {
+      "check": {
+        "type": "check",
+        "stat": "speed",
+        "difficulty": 3.0,
+        "baseOdds": 0.5,
+        "next": {
+          "success": "success",
+          "fail": "fail"
+        }
+      },
+      "success": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You breach the fortress.",
+        "emits": []
+      },
+      "fail": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The fortress defenses catch you.",
+        "emits": []
+      }
+    }
+  },
+  "cosmic_battle": {
+    "name": "[PLACEHOLDER] Cosmic Battle",
+    "bands": ["1-0"],
+    "weight": 10,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "pick",
+    "steps": {
+      "pick": {
+        "type": "pick",
+        "pool": "gods",
+        "bind": "opponent",
+        "next": "fight"
+      },
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "opponent",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You prevail in cosmic combat.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You are defeated.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You withdraw.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Neither can overcome the other.",
+        "emits": ["rival"]
+      }
+    }
+  },
+  "reality_break": {
+    "name": "[PLACEHOLDER] Reality Break",
+    "bands": ["1-0"],
+    "weight": 8,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": []
+    },
+    "weightMods": [],
+    "start": "check",
+    "steps": {
+      "check": {
+        "type": "check",
+        "stat": "strength",
+        "difficulty": 0.5,
+        "baseOdds": 0.5,
+        "next": {
+          "success": "success",
+          "fail": "fail"
+        }
+      },
+      "success": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You shatter reality itself.",
+        "emits": []
+      },
+      "fail": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Reality resists you.",
+        "emits": []
+      }
+    }
+  },
+  "rematch_rival": {
+    "name": "[PLACEHOLDER] Rematch with Rival",
+    "bands": ["10-9", "8-7", "6-4", "3-2", "1-0"],
+    "weight": 15,
+    "requires": {
+      "tags": [],
+      "notTags": [],
+      "carried": ["rival"]
+    },
+    "weightMods": [],
+    "start": "fight",
+    "steps": {
+      "fight": {
+        "type": "contest",
+        "mode": "fight",
+        "vs": "rival",
+        "next": {
+          "win": "won",
+          "lose": "lost",
+          "flee": "fled",
+          "standoff": "stand"
+        }
+      },
+      "won": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You defeat your rival decisively.",
+        "emits": []
+      },
+      "lost": {
+        "type": "end",
+        "text": "[PLACEHOLDER] Your rival defeats you.",
+        "emits": ["wounded"]
+      },
+      "fled": {
+        "type": "end",
+        "text": "[PLACEHOLDER] You escape your rival.",
+        "emits": []
+      },
+      "stand": {
+        "type": "end",
+        "text": "[PLACEHOLDER] The rivalry continues.",
+        "emits": ["rival"]
+      }
+    }
+  }
+}

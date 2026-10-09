@@ -1,0 +1,63 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT",
+  "basic_opponents": [
+    {
+      "id": "thug",
+      "name": "[PLACEHOLDER] Thug",
+      "weight": 10,
+      "str": 10.0,
+      "spd": 10.0,
+      "dur": 10.0,
+      "tags": ["mortal"]
+    },
+    {
+      "id": "soldier",
+      "name": "[PLACEHOLDER] Soldier",
+      "weight": 8,
+      "str": 9.5,
+      "spd": 9.5,
+      "dur": 9.5,
+      "tags": ["mortal", "combat"]
+    }
+  ],
+  "midtier_opponents": [
+    {
+      "id": "demon",
+      "name": "[PLACEHOLDER] Demon",
+      "weight": 10,
+      "str": 6.0,
+      "spd": 6.5,
+      "dur": 6.0,
+      "tags": ["fire", "destruction"]
+    },
+    {
+      "id": "elemental",
+      "name": "[PLACEHOLDER] Elemental",
+      "weight": 8,
+      "str": 5.5,
+      "spd": 5.0,
+      "dur": 6.5,
+      "tags": ["magic"]
+    }
+  ],
+  "gods": [
+    {
+      "id": "sun_titan",
+      "name": "[PLACEHOLDER] Sun Titan",
+      "weight": 10,
+      "str": 2.5,
+      "spd": 2.0,
+      "dur": 3.0,
+      "tags": ["divine", "fire", "physical_immunity"]
+    },
+    {
+      "id": "storm_god",
+      "name": "[PLACEHOLDER] Storm God",
+      "weight": 8,
+      "str": 1.5,
+      "spd": 2.5,
+      "dur": 2.0,
+      "tags": ["divine", "storm"]
+    }
+  ]
+}

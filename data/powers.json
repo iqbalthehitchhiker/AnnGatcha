@@ -1,0 +1,33 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT",
+  "super_strength": {
+    "name": "[PLACEHOLDER] Super Strength",
+    "weight": 10,
+    "tags": ["physical"]
+  },
+  "fireball": {
+    "name": "[PLACEHOLDER] Fireball",
+    "weight": 10,
+    "tags": ["magic", "fire"]
+  },
+  "telekinesis": {
+    "name": "[PLACEHOLDER] Telekinesis",
+    "weight": 8,
+    "tags": ["magic", "cosmic"]
+  },
+  "lightning_bolt": {
+    "name": "[PLACEHOLDER] Lightning Bolt",
+    "weight": 8,
+    "tags": ["storm", "destruction"]
+  },
+  "iron_skin": {
+    "name": "[PLACEHOLDER] Iron Skin",
+    "weight": 7,
+    "tags": ["physical", "combat"]
+  },
+  "void_manipulation": {
+    "name": "[PLACEHOLDER] Void Manipulation",
+    "weight": 5,
+    "tags": ["cosmic", "destruction"]
+  }
+}

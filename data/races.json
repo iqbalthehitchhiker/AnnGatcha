@@ -1,0 +1,88 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT - minimal set for testing only",
+  "human": {
+    "name": "[PLACEHOLDER] Human",
+    "weight": 10,
+    "archetypes": {
+      "warrior": 5,
+      "mage": 3
+    },
+    "sizes": {
+      "medium": 1
+    },
+    "tierWeights": {
+      "10": 50,
+      "9": 30,
+      "8": 10,
+      "7": 5,
+      "6": 3,
+      "5": 1,
+      "4": 1
+    },
+    "offsets": {
+      "spd": { "-1": 2, "0": 5, "1": 2 },
+      "dur": { "-1": 2, "0": 5, "1": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.5,
+    "tags": ["mortal"],
+    "mods": []
+  },
+  "elf": {
+    "name": "[PLACEHOLDER] Elf",
+    "weight": 8,
+    "archetypes": {
+      "mage": 6,
+      "warrior": 2
+    },
+    "sizes": {
+      "medium": 1
+    },
+    "tierWeights": {
+      "10": 40,
+      "9": 35,
+      "8": 15,
+      "7": 5,
+      "6": 3,
+      "5": 1,
+      "4": 1
+    },
+    "offsets": {
+      "spd": { "0": 3, "1": 5, "2": 2 },
+      "dur": { "-2": 3, "-1": 5, "0": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.3,
+    "tags": ["mortal", "fey"],
+    "mods": []
+  },
+  "dragon": {
+    "name": "[PLACEHOLDER] Dragon",
+    "weight": 3,
+    "archetypes": {
+      "elemental": 5,
+      "warrior": 3
+    },
+    "sizes": {
+      "huge": 1
+    },
+    "tierWeights": {
+      "9": 20,
+      "8": 25,
+      "7": 25,
+      "6": 15,
+      "5": 8,
+      "4": 4,
+      "3": 2,
+      "2": 1
+    },
+    "offsets": {
+      "spd": { "-2": 4, "-1": 4, "0": 2 },
+      "dur": { "0": 3, "1": 5, "2": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["draconic"],
+    "mods": []
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "_comment": "M1a PLACEHOLDER CONTENT",
+  "types": {
+    "sword": {
+      "name": "[PLACEHOLDER] Sword",
+      "weight": 10,
+      "level": 10,
+      "tags": ["blade"]
+    },
+    "staff": {
+      "name": "[PLACEHOLDER] Staff",
+      "weight": 8,
+      "level": 9,
+      "tags": ["magic_weapon"]
+    },
+    "godslayer_blade": {
+      "name": "[PLACEHOLDER] Godslayer Blade",
+      "weight": 1,
+      "level": 2,
+      "tags": ["blade", "legendary"]
+    }
+  },
+  "enchantments": {
+    "plain": {
+      "name": "[PLACEHOLDER] Plain",
+      "weight": 50,
+      "levelBonus": 0,
+      "tags": []
+    },
+    "fire_enchant": {
+      "name": "[PLACEHOLDER] Fire Enchantment",
+      "weight": 10,
+      "levelBonus": 1,
+      "tags": ["fire"]
+    },
+    "soul_edge": {
+      "name": "[PLACEHOLDER] Soul Edge",
+      "weight": 2,
+      "levelBonus": 1,
+      "tags": ["soul_severing"]
+    }
+  }
+}

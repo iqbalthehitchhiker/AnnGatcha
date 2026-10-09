@@ -1,0 +1,57 @@
+{
+  "env": {
+    "es2022": true,
+    "node": true,
+    "browser": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  "overrides": [
+    {
+      "files": ["src/core/**/*.js"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "Math.random",
+            "message": "Math.random is forbidden in src/core/. Use RNG module."
+          },
+          {
+            "name": "Date",
+            "message": "Date is forbidden in src/core/."
+          },
+          {
+            "name": "performance",
+            "message": "performance is forbidden in src/core/."
+          },
+          {
+            "name": "document",
+            "message": "document is forbidden in src/core/."
+          },
+          {
+            "name": "window",
+            "message": "window is forbidden in src/core/."
+          },
+          {
+            "name": "fetch",
+            "message": "fetch is forbidden in src/core/."
+          }
+        ],
+        "no-restricted-properties": [
+          "error",
+          {
+            "object": "Math",
+            "property": "random",
+            "message": "Math.random is forbidden in src/core/. Use RNG module."
+          }
+        ]
+      }
+    }
+  ]
+}

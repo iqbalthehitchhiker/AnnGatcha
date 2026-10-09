@@ -1,0 +1,41 @@
+{
+  "config": {
+    "stageOrder": ["race"],
+    "bands": { "10-9": [10, 9] },
+    "tierTailFloor": 0.02,
+    "maxPowers": 6,
+    "powerCount": { "1": 40 },
+    "powerCountShift": { "1": 0 },
+    "chainLength": 3,
+    "weaponPenalty": 1.0,
+    "harmMargin": 0.5,
+    "checkSteepness": 2.0,
+    "speedWeight": 0.25,
+    "minOdds": 0.01,
+    "speedGapFlee": 1.5
+  },
+  "races": {
+    "broken": {
+      "name": "Broken",
+      "weight": -1,
+      "archetypes": { "warrior": 1 },
+      "sizes": { "medium": 1 },
+      "tierWeights": { "10": 1 },
+      "weaponChance": 0.5,
+      "tags": [],
+      "mods": []
+    }
+  },
+  "archetypes": { "warrior": { "name": "W", "poolTags": ["physical"], "tagWeights": {}, "mods": [] } },
+  "sizes": { "medium": { "name": "M" } },
+  "traits": { "brave": { "name": "B", "weight": 1, "scenarioMods": [] } },
+  "powers": { "str": { "name": "S", "weight": 1, "tags": ["physical"] } },
+  "tags": { "physical": { "name": "P" } },
+  "weapons": { "types": { "sword": { "name": "S", "weight": 1, "level": 10, "tags": [] } }, "enchantments": { "plain": { "name": "P", "weight": 1, "levelBonus": 0, "tags": [] } } },
+  "pools": {},
+  "scenarios": {
+    "do_nothing": { "name": "DN", "bands": ["10-9"], "weight": 1, "requires": { "tags": [], "notTags": [], "carried": [] }, "weightMods": [], "start": "end", "steps": { "end": { "type": "end", "text": ".", "emits": [] } } },
+    "a": { "name": "A", "bands": ["10-9"], "weight": 1, "requires": { "tags": [], "notTags": [], "carried": [] }, "weightMods": [], "start": "check", "steps": { "check": { "type": "check", "stat": "strength", "difficulty": 10, "baseOdds": 0.5, "next": { "success": "s", "fail": "f" } }, "s": { "type": "end", "text": "s", "emits": [] }, "f": { "type": "end", "text": "f", "emits": [] } } },
+    "b": { "name": "B", "bands": ["10-9"], "weight": 1, "requires": { "tags": [], "notTags": [], "carried": [] }, "weightMods": [], "start": "check", "steps": { "check": { "type": "check", "stat": "speed", "difficulty": 10, "baseOdds": 0.5, "next": { "success": "s", "fail": "f" } }, "s": { "type": "end", "text": "s", "emits": [] }, "f": { "type": "end", "text": "f", "emits": [] } } }
+  }
+}
