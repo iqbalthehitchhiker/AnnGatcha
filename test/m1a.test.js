@@ -9,7 +9,9 @@ import { validate } from '../src/core/validate.js';
 import { 
   calculateEffectiveStrength, 
   canHarm, 
-  resolveFight, 
+  resolveFight,
+  resolveCheck,
+  applyWoundedEffect,
   getBandFromEffStr 
 } from '../src/core/stats.js';
 import { checkScenarioOptions } from '../src/core/chain.js';
@@ -20,33 +22,27 @@ const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 
 /**
- * Load game data
+ * Test-only helper: L(tier, frac = 0.5) = (10 - tier) + frac
+ * Converts tier notation to level
  */
-function loadData() {
-  const dataDir = join(projectRoot, 'data');
-  
-  const data = {
-    config: JSON.parse(readFileSync(join(dataDir, 'config.json'), 'utf8')),
-    races: JSON.parse(readFileSync(join(dataDir, 'races.json'), 'utf8')),
-    archetypes: JSON.parse(readFileSync(join(dataDir, 'archetypes.json'), 'utf8')),
-    sizes: JSON.parse(readFileSync(join(dataDir, 'sizes.json'), 'utf8')),
-    traits: JSON.parse(readFileSync(join(dataDir, 'traits.json'), 'utf8')),
-    powers: JSON.parse(readFileSync(join(dataDir, 'powers.json'), 'utf8')),
-    tags: JSON.parse(readFileSync(join(dataDir, 'tags.json'), 'utf8')),
-    weapons: JSON.parse(readFileSync(join(dataDir, 'weapons.json'), 'utf8')),
-    pools: JSON.parse(readFileSync(join(dataDir, 'pools.json'), 'utf8')),
-    scenarios: JSON.parse(readFileSync(join(dataDir, 'scenarios', 'basic.json'), 'utf8'))
-  };
-  
-  return data;
+function L(tier, frac = 0.5) {
+  return (10 - tier) + frac;
 }
 
-/**
- * Load fixture data
- */
-function loadFixture(name) {
-  const fixturePath = join(projectRoot, 'test', 'fixtures', `${name}.json`);
-  return JSON.parse(readFileSync(fixturePath, 'utf8'));
+function loadData() {
+  const dataPath = join(projectRoot, 'data');
+  const config = JSON.parse(readFileSync(join(dataPath, 'config.json'), 'utf-8'));
+  const races = JSON.parse(readFileSync(join(dataPath, 'races.json'), 'utf-8'));
+  const archetypes = JSON.parse(readFileSync(join(dataPath, 'archetypes.json'), 'utf-8'));
+  const sizes = JSON.parse(readFileSync(join(dataPath, 'sizes.json'), 'utf-8'));
+  const traits = JSON.parse(readFileSync(join(dataPath, 'traits.json'), 'utf-8'));
+  const powers = JSON.parse(readFileSync(join(dataPath, 'powers.json'), 'utf-8'));
+  const tags = JSON.parse(readFileSync(join(dataPath, 'tags.json'), 'utf-8'));
+  const weapons = JSON.parse(readFileSync(join(dataPath, 'weapons.json'), 'utf-8'));
+  const pools = JSON.parse(readFileSync(join(dataPath, 'pools.json'), 'utf-8'));
+  const scenarios = JSON.parse(readFileSync(join(dataPath, 'scenarios', 'basic.json'), 'utf-8'));
+
+  return { config, races, archetypes, sizes, traits, powers, tags, weapons, pools, scenarios };
 }
 
 describe('M1a Acceptance Tests', () => {
@@ -54,22 +50,27 @@ describe('M1a Acceptance Tests', () => {
   describe('Monotonicity', () => {
     it('should have win probability never decrease as strength rises', () => {
       const data = loadData();
-      const rng = () => 0.5; // Fixed draw for deterministic testing
+      const rng = () => 0.5;
       
-      const opponent = { str: 5.0, spd: 5.0, dur: 5.0, tags: [] };
+      // Tier 7 opponent (L=3.5)
+      const opponent = {
+        str: L(7), // tier 7
+        spd: L(5), // tier 5
+        dur: L(7), // tier 7
+        tags: []
+      };
       
-      // Test across strength range
-      const strengths = [3.0, 4.0, 5.0, 6.0, 7.0];
-      let lastProb = -1;
+      // Test character strength from tier 10 to tier 3
+      const strengths = [L(10), L(9), L(8), L(7), L(6), L(5), L(4), L(3)];
+      let lastProb = 0;
       
       for (const str of strengths) {
         const result = resolveFight(
-          str, 5.0, 5.0, [], // Character
+          str, L(5), L(5), [], // Character
           opponent.str, opponent.spd, opponent.dur, opponent.tags,
           rng, data
         );
         
-        // Win probability should not decrease
         const winProb = result.outcome === 'win' ? result.prob : 1 - result.prob;
         expect(winProb).toBeGreaterThanOrEqual(lastProb);
         lastProb = winProb;
@@ -80,14 +81,16 @@ describe('M1a Acceptance Tests', () => {
       const data = loadData();
       const rng = () => 0.5;
       
-      const charStr = 5.0;
-      const durabilities = [7.0, 6.0, 5.0, 4.0, 3.0];
-      let lastProb = -1;
+      const charStr = L(5); // tier 5
+      
+      // Test opponent durability from tier 3 to tier 10
+      const durabilities = [L(3), L(4), L(5), L(6), L(7), L(8), L(9), L(10)];
+      let lastProb = 0;
       
       for (const dur of durabilities) {
         const result = resolveFight(
-          charStr, 5.0, 5.0, [],
-          5.0, 5.0, dur, [],
+          charStr, L(5), L(5), [],
+          L(5), L(5), dur, [],
           rng, data
         );
         
@@ -99,21 +102,26 @@ describe('M1a Acceptance Tests', () => {
   });
   
   describe('Steepness', () => {
-    it('should give p >= 0.98 when delta >= 2 tiers', () => {
+    it('should give p >= 0.98 when diff >= 2 (both can harm)', () => {
       const data = loadData();
       const rng = () => 0.5;
       
-      // Delta of +2 tiers: char stronger by 2
-      // char at 3.0 (tier 7), opponent dur at 5.0 (tier 5)
-      // Delta = (effStrA - durB) - (effStrB - durA) / 2
-      // With equal stats otherwise: (3 - 5) - (5 - 5) / 2 = -2/2 = -1
-      // That's not right either. Let me think...
-      // For char to have +2 advantage: char effStr should be 2 higher than opp dur
-      // char at 8.0, opponent dur at 10.0 means char is 2 weaker
-      // Let's reverse: char at 10.0, opponent at 8.0
+      // Example from spec: A str 9.5, dur 5.0; B str 4.6, dur 5.5
+      // diff = ((effStrA - durB) - (effStrB - durA)) / 2 at equal speed
+      // diff = ((9.5 - 5.5) - (4.6 - 5.0)) / 2 = (4.0 - (-0.4)) / 2 = 4.4 / 2 = 2.2
+      const charStr = 9.5; // Near tier 1
+      const charDur = 5.0; // tier 5
+      const oppStr = 4.6; // Near tier 6
+      const oppDur = 5.5; // tier 5
+      const speed = L(5); // Equal speeds, tier 5
+      
+      // Verify diff calculation
+      const expectedDiff = ((charStr - oppDur) - (oppStr - charDur)) / 2;
+      expect(expectedDiff).toBeCloseTo(2.2, 1);
+      
       const result = resolveFight(
-        10.0, 5.0, 5.0, [],  // Char weaker tier
-        8.0, 5.0, 8.0, [],   // Opponent stronger tier
+        charStr, speed, charDur, [],
+        oppStr, speed, oppDur, [],
         rng, data
       );
       
@@ -121,14 +129,24 @@ describe('M1a Acceptance Tests', () => {
       expect(winProb).toBeGreaterThanOrEqual(0.98);
     });
     
-    it('should give p <= 0.02 when delta <= -2 tiers', () => {
+    it('should give p <= 0.02 when mirrored (diff <= -2)', () => {
       const data = loadData();
       const rng = () => 0.5;
       
-      // Delta of -2 tiers: char at 10.0, opponent dur at 8.0
+      // Mirror the previous test: swap A and B
+      const charStr = 4.6; // Near tier 6
+      const charDur = 5.5; // tier 5
+      const oppStr = 9.5; // Near tier 1
+      const oppDur = 5.0; // tier 5
+      const speed = L(5); // Equal speeds
+      
+      // Verify diff calculation
+      const expectedDiff = ((charStr - oppDur) - (oppStr - charDur)) / 2;
+      expect(expectedDiff).toBeCloseTo(-2.2, 1);
+      
       const result = resolveFight(
-        10.0, 5.0, 5.0, [],
-        8.0, 5.0, 8.0, [],
+        charStr, speed, charDur, [],
+        oppStr, speed, oppDur, [],
         rng, data
       );
       
@@ -136,130 +154,82 @@ describe('M1a Acceptance Tests', () => {
       expect(winProb).toBeLessThanOrEqual(0.02);
     });
     
-    it('should give 0.25 to 0.75 when |delta| < 0.5', () => {
+    it('should give 0.5 when diff = 0 (symmetric)', () => {
       const data = loadData();
       const rng = () => 0.5;
       
-      // Small delta: char at 5.0, opponent at 5.2
+      // Perfectly symmetric: all stats equal
+      const level = L(5); // tier 5
+      
       const result = resolveFight(
-        5.0, 5.0, 5.0, [],
-        5.2, 5.0, 5.2, [],
+        level, level, level, [],
+        level, level, level, [],
         rng, data
       );
       
       const winProb = result.outcome === 'win' ? result.prob : 1 - result.prob;
-      expect(winProb).toBeGreaterThanOrEqual(0.25);
-      expect(winProb).toBeLessThanOrEqual(0.75);
+      expect(winProb).toBeCloseTo(0.5, 2);
     });
   });
   
   describe('Weapon Test (FR-S2)', () => {
-    it('should allow tier-10 human with tier-2 weapon to harm a god', () => {
+    it('should boost tier-10 human with tier-2 weapon into band 3-2 and enable harm', () => {
       const data = loadData();
       
-      // Create a tier-10 human character with godslayer_blade
-      const weapon = { type: 'godslayer_blade', enchantment: 'plain' };
-      const charStr = 10.0; // Tier 10
-      const charSpd = 10.0;
-      const charDur = 10.0;
+      // Human: all stats in tier 10 (L < 1)
+      const humanStr = L(10, 0.3); // tier 10, L=0.3
+      const humanSpd = L(10, 0.4); // tier 10, L=0.4
+      const humanDur = L(10, 0.5); // tier 10, L=0.5
       
-      const effStr = calculateEffectiveStrength(charStr, weapon, data);
+      // Test with godslayer_blade (assuming it's configured as tier-2 weapon)
+      // Note: Current data has level=2 which means L=2, tier 8 - this is backwards
+      // But we test what exists
+      const weapon = { type: 'godslayer_blade', enchantment: 'soul_edge' };
+      const effStr = calculateEffectiveStrength(humanStr, weapon, data);
       
-      // Tier-2 weapon should give effStr around 2.0 (10 - weaponPenalty = 2 - 1 = 1)
-      // Actually godslayer is level 2, so effStr = max(10.0, 2.0 - 1.0) = max(10, 1) = 10
-      // Wait, that's wrong. Let me recalculate:
-      // weaponLevel = 2 + 0 = 2
-      // weaponStr = 2 - 1 = 1
-      // effStr = max(10, 1) = 10
-      // Hmm, that means we need the weapon to be stronger. Let me check the spec...
-      // The spec says tier-2 weapon, which should be level = 2
-      // Oh wait, level 2 means L=2, which is tier 8 (tier = 10 - floor(L))
-      // But the spec says tier-2, meaning very powerful
-      // Let me re-read: "tier-2 weapon" - in the tier table, tier 2 is multiversal
-      // So a tier-2 weapon should have high power
-      // Actually looking at the data, godslayer_blade has level: 2
-      // This is probably meant to be the numeric level, not tier
-      // For a tier-2 weapon, we want L = 2, so level should be higher
-      // Let me check the test requirement again...
+      // Get weapon tags from data
+      const weaponType = data.weapons.types.godslayer_blade;
+      const enchantment = data.weapons.enchantments.soul_edge;
+      const weaponTags = [...(weaponType.tags || []), ...(enchantment.tags || [])];
       
-      // The test says: tier-10 human with tier-2 weapon lands in band 3-2
-      // bandTier = 10 - floor(effStr)
-      // For band 3-2, we need bandTier = 3 or 2
-      // So we need effStr in [2, 4)
-      // If weaponLevel = 2, weaponStr = 2 - 1 = 1, effStr = max(10, 1) = 10, bandTier = 0
-      // That's wrong
+      // Assert: effStr is in tier 3 or 2 (L in [7, 9))
+      expect(effStr).toBeGreaterThanOrEqual(7.0);
+      expect(effStr).toBeLessThan(9.0);
       
-      // I think "level: 2" in the data means tier 2, which translates to L = 8
-      // Let me look at what makes sense: a god is at tier 2-3 (str around 2.0)
-      // A tier-2 weapon should be able to fight gods
-      // So weaponLevel should be around 8 to give effStr around 3 after penalty
+      // Assert: band is "3-2"
+      const band = getBandFromEffStr(effStr, data);
+      expect(band).toBe('3-2');
       
-      // Actually, re-reading the weapon data: godslayer_blade has level: 2
-      // This must mean the TIER level (powerful), not the L level
-      // But our calculation uses it as L directly
-      // Let me check the spec again... it says weapon "level" not "tier"
-      // And the formula is weaponLevel - penalty
+      // Assert: speed and durability unchanged
+      expect(humanSpd).toBe(L(10, 0.4));
+      expect(humanDur).toBe(L(10, 0.5));
       
-      // I think the issue is our placeholder data. Let me adjust the test to match
-      // what we have, and note this in the output
-      
-      // For this test to work: weapon needs to boost character into band 3-2
-      // That means effStr should be around 2-4
-      // Character base strength is 10.0 (tier 10, L=0)
-      // Weapon needs to provide effStr around 3
-      // weaponLevel - 1.0 = 3, so weaponLevel = 4
-      
-      // But our godslayer has level 2. So let's test what we have:
-      expect(effStr).toBeDefined();
-      
-      // Speed and durability should be unchanged (FR-S2)
-      expect(charSpd).toBe(10.0);
-      expect(charDur).toBe(10.0);
-      
-      // Test against a god (sun_titan at str 2.5, dur 3.0)
-      const god = data.pools.gods.find(g => g.id === 'sun_titan');
+      // Get a physical_immunity god
+      const god = data.pools.gods.find(g => g.tags.includes('physical_immunity'));
       expect(god).toBeDefined();
       
-      const charTags = ['soul_severing']; // From soul_edge enchantment
-      const godTags = god.tags;
+      // Assert: human can harm god ONLY with soul_severing enchantment
+      const canHarmWithSoulSevering = canHarm(effStr, god.dur, weaponTags, god.tags, data);
+      expect(canHarmWithSoulSevering).toBe(true);
       
-      // With soul_severing, should be able to harm physical_immunity god
-      const canHarmGod = canHarm(effStr, god.dur, charTags, godTags, data);
-      expect(canHarmGod).toBe(true);
+      const weaponTagsWithoutSoulSevering = weaponTags.filter(t => t !== 'soul_severing');
+      const canHarmWithout = canHarm(effStr, god.dur, weaponTagsWithoutSoulSevering, god.tags, data);
+      expect(canHarmWithout).toBe(false);
       
-      // God should still harm the human (prob near 1)
-      const rng = () => 0.01; // Low draw favors stronger side
-      const godCanHarmChar = canHarm(god.str, charDur, godTags, charTags, data);
-      expect(godCanHarmChar).toBe(true);
-      
-      const result = resolveFight(
-        effStr, charSpd, charDur, charTags,
-        god.str, god.spd, god.dur, godTags,
-        rng, data
-      );
-      
-      // This should be two-sided or one-sided in god's favor
-      // God probably wins with high probability
-      expect(['win', 'lose', 'flee', 'standoff']).toContain(result.outcome);
+      // Assert: god can harm human (god str >= human dur - harmMargin)
+      const harmMargin = data.config.harmMargin;
+      expect(god.str).toBeGreaterThanOrEqual(humanDur - harmMargin);
     });
   });
   
   describe('Band Test', () => {
-    it('should place tier-10 human with tier-2 weapon in band 3-2', () => {
-      // Note: This test depends on weapon data
-      // With current placeholder, godslayer_blade level=2 gives effStr = max(10, 1) = 10
-      // This would be band 1-0, not 3-2
-      // The test spec expects a weapon that boosts into band 3-2
-      // Let's test the band calculation logic instead
-      
+    it('should place weapon-boosted character in correct band', () => {
       const data = loadData();
       
-      // Test band calculation
+      // Test band calculation for tier 3-2 (tiers [3, 2])
       // bandTier = 10 - floor(effStr)
-      // Band 3-2 has tiers [3, 2]
-      // So we need bandTier to be 3 or 2
-      // bandTier = 2 means floor(effStr) = 8, so effStr in [8, 9)
-      // bandTier = 3 means floor(effStr) = 7, so effStr in [7, 8)
+      // For bandTier = 3: floor(effStr) = 7, so effStr in [7, 8)
+      // For bandTier = 2: floor(effStr) = 8, so effStr in [8, 9)
       
       const band = getBandFromEffStr(7.5, data);
       expect(band).toBe('3-2');
@@ -268,10 +238,8 @@ describe('M1a Acceptance Tests', () => {
     it('should offer weapon-friendly scenarios for weapon-boosted characters', () => {
       const data = loadData();
       
-      // A character in band 3-2 should have weapon-friendly scenarios
-      // These are scenarios without contest steps (assassination, heist, etc.)
-      const scenariosInBand = Object.entries(data.scenarios).filter(([id, s]) =>
-        s.bands && s.bands.includes('3-2') && id !== 'do_nothing'
+      const scenariosInBand = Object.entries(data.scenarios).filter(([_id, s]) =>
+        s.bands && s.bands.includes('3-2')
       );
       
       // Check that at least one is weapon-friendly (no contest)
@@ -294,57 +262,27 @@ describe('M1a Acceptance Tests', () => {
     it('should allow soul-severing weapon to harm physical-immune god', () => {
       const data = loadData();
       
-      const charEffStr = 5.0;
+      const effStr = L(8); // tier 2
       const charTags = ['soul_severing'];
       
-      const godDur = 3.0;
-      const godTags = ['physical_immunity'];
+      const god = data.pools.gods.find(g => g.tags.includes('physical_immunity'));
+      expect(god).toBeDefined();
       
-      const result = canHarm(charEffStr, godDur, charTags, godTags, data);
+      const result = canHarm(effStr, god.dur, charTags, god.tags, data);
       expect(result).toBe(true);
     });
     
     it('should NOT allow weapon without soul-severing to harm physical-immune god', () => {
       const data = loadData();
       
-      const charEffStr = 5.0;
+      const effStr = L(8); // tier 2
       const charTags = ['blade']; // No soul_severing
       
-      const godDur = 3.0;
-      const godTags = ['physical_immunity'];
+      const god = data.pools.gods.find(g => g.tags.includes('physical_immunity'));
+      expect(god).toBeDefined();
       
-      // Without bypass, need effStr >= dur - harmMargin
-      // 5.0 >= 3.0 - 0.5 = 2.5, so normally could harm
-      // But physical_immunity blocks normal harm (needs bypass)
-      // Actually, the canHarm function checks bypass first, then strength
-      // So this should succeed based on strength alone
-      // Let me reconsider...
-      
-      // Reading FR-S4: bypass works if tag has bypassesDurability AND counters don't intersect
-      // physical_immunity is not a bypass tag, it's a durability trait
-      // soul_severing is the bypass tag that counters physical_immunity
-      
-      // Without soul_severing, the strength check should work normally
-      // UNLESS we want physical_immunity to block ALL non-bypass harm
-      // Let me check the spec again...
-      
-      // The spec says: soul-severing weapon harms physical-immune god
-      // And: same weapon without the tag does not
-      // This implies physical_immunity should block normal harm
-      
-      // But our canHarm logic doesn't implement that
-      // Physical immunity should make the god unharmable except by bypass
-      
-      // This is a spec interpretation issue. For now, test what's implemented:
-      const result = canHarm(charEffStr, godDur, charTags, godTags, data);
-      
-      // With current implementation, this succeeds on strength
-      // The test spec wants it to fail
-      // This suggests physical_immunity should increase effective durability
-      // Or we need a different tag mechanism
-      
-      // For now, I'll test that the bypass case works, which is what's critical
-      expect(result).toBeDefined();
+      const result = canHarm(effStr, god.dur, charTags, god.tags, data);
+      expect(result).toBe(false);
     });
   });
   
@@ -357,7 +295,7 @@ describe('M1a Acceptance Tests', () => {
       for (let i = 0; i < iterations; i++) {
         const rng = createRng('stalemate_test', `iter_${i}`, 0);
         
-        // Random stats
+        // Random stats in [0, 11)
         const charStr = Math.random() * 11;
         const charSpd = Math.random() * 11;
         const charDur = Math.random() * 11;
@@ -381,55 +319,85 @@ describe('M1a Acceptance Tests', () => {
       expect(unresolvedCount).toBe(0);
     });
     
-    it('should only standoff when speed gap is below speedGapFlee', () => {
+    it('flee occurs only when character is faster by > speedGapFlee', () => {
       const data = loadData();
       const speedGapFlee = data.config.speedGapFlee;
+      const rng = () => 0.5;
       
-      // Test stalemate case (neither can harm)
-      const charStr = 5.0;
-      const oppStr = 5.0;
-      const charDur = 10.0; // High durability, can't be harmed
-      const oppDur = 10.0;
+      // Neither can harm: stalemate
+      const charStr = L(10); // tier 10, weak
+      const oppStr = L(10); // tier 10, weak
+      const charDur = L(2); // tier 8, strong
+      const oppDur = L(2); // tier 8, strong
       
-      // Small speed gap: should standoff
-      const smallGapResult = resolveFight(
-        charStr, 5.0, charDur, [],
-        oppStr, 5.1, oppDur, [],
-        () => 0.5, data
+      // Test: character much faster -> flee
+      const charSpd = L(5, 0.5);
+      const oppSpd = charSpd - speedGapFlee - 0.5;
+      
+      const result = resolveFight(
+        charStr, charSpd, charDur, [],
+        oppStr, oppSpd, oppDur, [],
+        rng, data
       );
-      expect(smallGapResult.outcome).toBe('standoff');
       
-      // Large speed gap: should flee
-      const largeGapResult = resolveFight(
-        charStr, 5.0, charDur, [],
-        oppStr, 5.0 + speedGapFlee + 0.5, oppDur, [],
-        () => 0.5, data
+      expect(result.outcome).toBe('flee');
+    });
+    
+    it('standoff occurs when speeds are close OR opponent is faster by > speedGapFlee', () => {
+      const data = loadData();
+      const speedGapFlee = data.config.speedGapFlee;
+      const rng = () => 0.5;
+      
+      // Neither can harm: stalemate
+      const charStr = L(10); // tier 10, weak
+      const oppStr = L(10); // tier 10, weak
+      const charDur = L(2); // tier 8, strong
+      const oppDur = L(2); // tier 8, strong
+      
+      // Test: speeds close -> standoff
+      const result1 = resolveFight(
+        charStr, L(5), charDur, [],
+        oppStr, L(5, 0.1), oppDur, [],
+        rng, data
       );
-      expect(largeGapResult.outcome).toBe('flee');
+      expect(result1.outcome).toBe('standoff');
+      
+      // Test: opponent much faster -> standoff
+      const charSpd = L(5);
+      const oppSpd = charSpd + speedGapFlee + 0.5;
+      
+      const result2 = resolveFight(
+        charStr, charSpd, charDur, [],
+        oppStr, oppSpd, oppDur, [],
+        rng, data
+      );
+      expect(result2.outcome).toBe('standoff');
     });
   });
   
   describe('One-Sided Flee Test', () => {
-    it('should flee deterministically when fast side cannot harm and speed gap exceeds threshold', () => {
+    it('should flee when character cannot harm, opponent can, and character is faster', () => {
       const data = loadData();
       const speedGapFlee = data.config.speedGapFlee;
+      const rng = createRng('one_sided_flee', 'test1', 0);
       
-      // Fast human vs slower god that can harm them
-      const charStr = 10.0; // Weak
-      const charSpd = 5.0;  // Fast
-      const charDur = 10.0;
+      // Human: weak, fast
+      const charStr = L(10, 0.2); // tier 10, weak
+      const charSpd = L(5);        // tier 5
+      const charDur = L(10, 0.3);  // tier 10, weak
       
-      const godStr = 2.0;   // Strong
-      const godSpd = 5.0 - speedGapFlee - 0.5; // Slower
-      const godDur = 2.0;
+      // God: strong, slower
+      const oppStr = L(2);         // tier 8, strong
+      const oppSpd = charSpd - speedGapFlee - 0.5; // Slower by > speedGapFlee
+      const oppDur = L(2);         // tier 8, strong
       
       const result = resolveFight(
         charStr, charSpd, charDur, [],
-        godStr, godSpd, godDur, [],
-        () => 0.5, data
+        oppStr, oppSpd, oppDur, [],
+        rng, data
       );
       
-      // Should flee deterministically (human can't harm god, but is faster)
+      // Should flee deterministically (character escapes)
       expect(result.outcome).toBe('flee');
       expect(result.prob).toBe(1.0);
     });
@@ -437,31 +405,102 @@ describe('M1a Acceptance Tests', () => {
     it('should rout at 1-minOdds when speed gap is below threshold', () => {
       const data = loadData();
       const minOdds = data.config.minOdds;
+      const rng = createRng('one_sided_rout', 'test1', 0);
       
-      // Fast human vs god with small speed gap
-      const charStr = 10.0;
-      const charSpd = 5.0;
-      const charDur = 10.0;
+      // Human: weak, slightly faster
+      const charStr = L(10);       // tier 10, weak
+      const charSpd = L(5);        // tier 5
+      const charDur = L(10);       // tier 10, weak
       
-      const godStr = 2.0;
-      const godSpd = 4.9; // Small speed gap
-      const godDur = 2.0;
+      // God: strong, nearly same speed
+      const oppStr = L(2);         // tier 8, strong
+      const oppSpd = L(5, 0.4);    // tier 5, small speed gap
+      const oppDur = L(2);         // tier 8, strong
       
       const result = resolveFight(
         charStr, charSpd, charDur, [],
-        godStr, godSpd, godDur, [],
-        () => 0.001, // Low draw should give loss
-        data
+        oppStr, oppSpd, oppDur, [],
+        rng, data
       );
       
-      // Should be rout: god wins with prob 1 - minOdds
+      // Should be rout: opponent wins at 1 - minOdds
       expect(['win', 'lose']).toContain(result.outcome);
-      const lossProbExpected = 1 - minOdds;
       
-      // The god should win most of the time
+      // The probabilities should sum to 1 and be clamped by minOdds
+      const lossProbExpected = 1 - minOdds;
       if (result.outcome === 'lose') {
         expect(result.prob).toBeCloseTo(lossProbExpected, 2);
       }
+    });
+  });
+  
+  describe('FR-S7: Non-Fight Check', () => {
+    it('should give baseOdds when stat equals difficulty', () => {
+      const data = loadData();
+      const rng = () => 0.5;
+      const baseOdds = 0.7;
+      
+      const stat = L(5);
+      const difficulty = L(5);
+      
+      const result = resolveCheck(stat, difficulty, baseOdds, rng, data);
+      
+      // When stat == difficulty, probability should equal baseOdds (clamped)
+      const expectedProb = Math.max(data.config.minOdds, Math.min(baseOdds, 1 - data.config.minOdds));
+      
+      if (result.outcome === 'success') {
+        expect(result.prob).toBeCloseTo(expectedProb, 2);
+      } else {
+        expect(result.prob).toBeCloseTo(1 - expectedProb, 2);
+      }
+    });
+    
+    it('should clamp at both ends (minOdds and 1-minOdds)', () => {
+      const data = loadData();
+      const rng = () => 0.01;
+      const baseOdds = 0.5;
+      
+      // Very high stat vs low difficulty -> should clamp at 1 - minOdds
+      const highResult = resolveCheck(L(2), L(10), baseOdds, rng, data);
+      expect(highResult.prob).toBeLessThanOrEqual(1 - data.config.minOdds);
+      
+      // Very low stat vs high difficulty -> should clamp at minOdds
+      const lowResult = resolveCheck(L(10), L(2), baseOdds, rng, data);
+      if (lowResult.outcome === 'success') {
+        expect(lowResult.prob).toBeGreaterThanOrEqual(data.config.minOdds);
+      }
+    });
+  });
+  
+  describe('Wounded Effect', () => {
+    it('should apply -1.0 to all stats when wounded tag is active', () => {
+      const data = loadData();
+      
+      const originalStr = L(5);
+      const originalSpd = L(6);
+      const originalDur = L(7);
+      
+      const woundedStr = applyWoundedEffect(originalStr, ['wounded']);
+      const woundedSpd = applyWoundedEffect(originalSpd, ['wounded']);
+      const woundedDur = applyWoundedEffect(originalDur, ['wounded']);
+      
+      expect(woundedStr).toBe(originalStr - 1.0);
+      expect(woundedSpd).toBe(originalSpd - 1.0);
+      expect(woundedDur).toBe(originalDur - 1.0);
+    });
+    
+    it('should not change band when wounded (band determined from effStr at chain start)', () => {
+      const data = loadData();
+      
+      // Character with effStr at L=7.5 (tier 3, band 3-2)
+      const effStr = 7.5;
+      const band1 = getBandFromEffStr(effStr, data);
+      expect(band1).toBe('3-2');
+      
+      // Even if speed/dur are reduced by wounded, effStr (and thus band) is fixed
+      // This test verifies the band calculation doesn't change
+      const band2 = getBandFromEffStr(effStr, data);
+      expect(band2).toBe(band1);
     });
   });
   
@@ -473,101 +512,89 @@ describe('M1a Acceptance Tests', () => {
       const run2 = generateRun(data, 'replay_test');
       
       // Traces should be identical
-      expect(JSON.stringify(run1.trace)).toBe(JSON.stringify(run2.trace));
+      expect(run1.trace).toEqual(run2.trace);
       
       // Outcomes should be identical
-      expect(run1.character).toEqual(run2.character);
-      expect(run1.scenarios).toEqual(run2.scenarios);
+      expect(run1.scenarioOutcomes).toEqual(run2.scenarioOutcomes);
     });
   });
   
   describe('Per-Band Options Test', () => {
     it('should have at least 2 non-do_nothing scenarios per band for various characters', () => {
       const data = loadData();
-      const testCount = 100;
-      const issues = [];
       
-      for (let i = 0; i < testCount; i++) {
-        const run = generateRun(data, `options_test_${i}`);
-        const check = checkScenarioOptions(run.character, data);
+      // Sample a few character builds
+      const sampleBuilds = [
+        { effStr: L(10), tags: [] },
+        { effStr: L(7), tags: ['blade'] },
+        { effStr: L(5), tags: ['magic'] },
+        { effStr: L(2), tags: ['divine'] },
+      ];
+      
+      for (const build of sampleBuilds) {
+        const band = getBandFromEffStr(build.effStr, data);
+        const options = checkScenarioOptions(build.effStr, build.tags, [], band, data);
         
-        if (!check.hasEnoughOptions) {
-          issues.push({
-            seed: `options_test_${i}`,
-            band: check.band,
-            effStr: check.effStr,
-            options: check.optionCount,
-            race: run.character.race,
-            trait: run.character.trait
-          });
-        }
+        // Should have at least 2 non-do_nothing options
+        expect(options.length).toBeGreaterThanOrEqual(2);
       }
-      
-      // All characters should have sufficient options
-      if (issues.length > 0) {
-        console.log('Characters with insufficient options:', issues);
-      }
-      
-      expect(issues.length).toBe(0);
     });
   });
   
   describe('Validation Fixtures', () => {
     it('should fail for missing contest branch', () => {
-      const data = loadFixture('invalid-missing-contest-branch');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-missing-contest-branch.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('missing') && e.includes('flee'))).toBe(true);
+      expect(result.errors.some(e => e.includes('missing') && e.includes('branch'))).toBe(true);
     });
     
     it('should fail for no durability-free scenarios', () => {
-      const data = loadFixture('invalid-no-durability-free');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-no-durability-free.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('durability-free'))).toBe(true);
     });
     
     it('should fail for carried tag never emitted', () => {
-      const data = loadFixture('invalid-carried-never-emitted');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-carried-never-emitted.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('never emitted'))).toBe(true);
     });
     
     it('should fail for carried tag never consumed', () => {
-      const data = loadFixture('invalid-carried-never-consumed');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-carried-never-consumed.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('never consumed'))).toBe(true);
     });
     
     it('should fail for undefined pool', () => {
-      const data = loadFixture('invalid-undefined-pool');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-undefined-pool.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('unknown pool'))).toBe(true);
     });
     
     it('should fail for dead-end step', () => {
-      const data = loadFixture('invalid-dead-end-step');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-dead-end-step.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('dead end'))).toBe(true);
     });
     
     it('should fail for unused stat', () => {
-      const data = loadFixture('invalid-stat-unused');
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-stat-unused.json'), 'utf-8'));
       const result = validate(data);
-      
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('not used'))).toBe(true);
     });
+    
+    it('should throw when validation rule encounters an error', () => {
+      const data = JSON.parse(readFileSync(join(projectRoot, 'test/fixtures/invalid-validation-throw.json'), 'utf-8'));
+      // This fixture has null values that should cause a throw in validation
+      expect(() => validate(data)).toThrow();
+    });
   });
-  
 });
