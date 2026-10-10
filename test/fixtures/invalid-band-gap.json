@@ -1,0 +1,39 @@
+{
+  "config": {
+    "stageOrder": ["race"],
+    "bands": {
+      "10-9": [9, 10],
+      "8-7": [7, 8],
+      "1-0": [0, 1]
+    }
+  },
+  "races": {
+    "human": {
+      "name": "Human",
+      "weight": 1,
+      "archetypes": { "warrior": 1 },
+      "sizes": { "medium": 1 },
+      "tierWeights": { "0": 1 }
+    }
+  },
+  "archetypes": {
+    "warrior": {
+      "name": "Warrior",
+      "poolTags": []
+    }
+  },
+  "sizes": {
+    "medium": {
+      "name": "Medium"
+    }
+  },
+  "traits": {},
+  "powers": {},
+  "tags": {},
+  "weapons": {
+    "types": {},
+    "enchantments": {}
+  },
+  "pools": {},
+  "scenarios": {}
+}

@@ -106,7 +106,13 @@ function runSimulation(n, data) {
       standoff: 0
     },
     fightOutcomesByBand: {},
-    insufficientOptions: []
+    insufficientOptions: [],
+    // Check success rates
+    checksByScenario: {},
+    checksByBand: {},
+    // Repeat statistics
+    tripleRepeats: 0,
+    anyRepeats: 0
   };
   
   console.log(`Running ${n} simulations...`);
@@ -137,17 +143,47 @@ function runSimulation(n, data) {
       stats.powerCounts[pc] = (stats.powerCounts[pc] || 0) + 1;
       
       // Collect scenario distribution (M1a)
+      const scenarioIds = [];
       for (const scenario of result.scenarios) {
         const scenarioId = scenario.scenarioId;
+        scenarioIds.push(scenarioId);
         stats.scenarios[scenarioId] = (stats.scenarios[scenarioId] || 0) + 1;
         
-        // Analyze scenario trace for harm class and outcomes
+        // Analyze scenario trace for harm class, outcomes, and checks
         for (const traceEntry of scenario.trace) {
           if (traceEntry.stepType === 'contest' && traceEntry.mode === 'fight') {
             // Track fight outcomes and harm classes from contest metadata
             analyzeContestOutcome(traceEntry, stats, band, data);
           }
+          
+          if (traceEntry.stepType === 'check') {
+            // Track check success rates
+            if (!stats.checksByScenario[scenarioId]) {
+              stats.checksByScenario[scenarioId] = { total: 0, success: 0 };
+            }
+            stats.checksByScenario[scenarioId].total++;
+            if (traceEntry.outcome === 'success') {
+              stats.checksByScenario[scenarioId].success++;
+            }
+            
+            if (!stats.checksByBand[band]) {
+              stats.checksByBand[band] = { total: 0, success: 0 };
+            }
+            stats.checksByBand[band].total++;
+            if (traceEntry.outcome === 'success') {
+              stats.checksByBand[band].success++;
+            }
+          }
         }
+      }
+      
+      // Check for repeats
+      const uniqueScenarios = new Set(scenarioIds);
+      if (uniqueScenarios.size === 1) {
+        stats.tripleRepeats++;
+      }
+      if (uniqueScenarios.size < scenarioIds.length) {
+        stats.anyRepeats++;
       }
       
       // Check scenario options (M1a, FR-X3)
@@ -192,7 +228,7 @@ function analyzeContestOutcome(traceEntry, stats, band, data) {
   const outcome = traceEntry.pickedId;
   
   // Track fight outcome
-  if (outcome && stats.fightOutcomes.hasOwnProperty(outcome)) {
+  if (outcome && Object.hasOwn(stats.fightOutcomes, outcome)) {
     stats.fightOutcomes[outcome] = (stats.fightOutcomes[outcome] || 0) + 1;
     
     // Track by band
@@ -204,7 +240,7 @@ function analyzeContestOutcome(traceEntry, stats, band, data) {
   
   // Read harm class directly from metadata
   const harmClass = traceEntry.meta?.harmClass;
-  if (harmClass && stats.harmClasses.hasOwnProperty(harmClass.replace('-', '_'))) {
+  if (harmClass && Object.hasOwn(stats.harmClasses, harmClass.replace('-', '_'))) {
     stats.harmClasses[harmClass.replace('-', '_')]++;
     
     // Track by band
@@ -342,6 +378,14 @@ function printStats(stats) {
     console.log(`  ${scenarioId}: ${count} (${pct}%)`);
   }
   
+  // Repeat statistics
+  console.log('\nRepeat Statistics:');
+  const tripleRepeatPct = ((stats.tripleRepeats / stats.total) * 100).toFixed(2);
+  const anyRepeatPct = ((stats.anyRepeats / stats.total) * 100).toFixed(2);
+  console.log(`  Triple repeats (all 3 identical): ${stats.tripleRepeats} (${tripleRepeatPct}%)`);
+  console.log(`  Any repeat (at least 2 identical): ${stats.anyRepeats} (${anyRepeatPct}%)`);
+  console.log(`  All unique: ${stats.total - stats.anyRepeats} (${((stats.total - stats.anyRepeats) / stats.total * 100).toFixed(2)}%)`);
+  
   // M1a: Harm class breakdown (FR-M1)
   console.log('\nHarm Class Distribution (FR-M1):');
   const totalContests = stats.harmClasses.neither + stats.harmClasses.one_sided + stats.harmClasses.both;
@@ -429,6 +473,171 @@ function printStats(stats) {
     }
   }
   
+  // Check success rates
+  console.log('\nCheck Success Rates:');
+  console.log('  By Scenario:');
+  const scenarioEntries = Object.entries(stats.checksByScenario).sort((a, b) => b[1].total - a[1].total);
+  for (const [scenarioId, checkStats] of scenarioEntries) {
+    const successRate = (checkStats.success / checkStats.total) * 100;
+    console.log(`    ${scenarioId}: ${checkStats.total} checks, ${successRate.toFixed(1)}% success`);
+  }
+  
+  console.log('  By Band:');
+  const bandOrder = ['10-9', '8-7', '6-4', '3-2', '1-0'];
+  for (const band of bandOrder) {
+    const checkStats = stats.checksByBand[band];
+    if (checkStats) {
+      const successRate = (checkStats.success / checkStats.total) * 100;
+      console.log(`    ${band}: ${checkStats.total} checks, ${successRate.toFixed(1)}% success`);
+    }
+  }
+  
+  console.log('');
+}
+
+/**
+ * Run N prose runs with deterministic seeds and print formatted output
+ * Spec section 13: --prose N prints N human-readable runs
+ *
+ * @param {number} n - Number of runs to print
+ */
+function runProseMode(n) {
+  console.log('Loading data...');
+  const data = loadData();
+  const validationResult = validate(data);
+  if (!validationResult.valid) {
+    console.error('Validation failed:');
+    for (const error of validationResult.errors) {
+      console.error(`  - ${error}`);
+    }
+    process.exit(1);
+  }
+  if (validationResult.warnings.length > 0) {
+    console.warn('Validation warnings:');
+    for (const warning of validationResult.warnings) {
+      console.warn(`  - ${warning}`);
+    }
+  }
+  console.log('Validation passed.');
+
+  const percentiles = loadPercentiles();
+
+  console.log(`Running ${n} prose simulations...\n`);
+  for (let i = 0; i < n; i++) {
+    const seed = `prose_${i}`;
+    const result = generateRun(data, seed);
+    printProseRun(result, data, percentiles, seed);
+  }
+}
+
+/**
+ * Load percentiles.json if present
+ *
+ * @returns {any|null} Percentiles object or null
+ */
+function loadPercentiles() {
+  try {
+    return JSON.parse(readFileSync(join(projectRoot, 'data', 'percentiles.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Compute percentile rank of a log-probability from percentiles data
+ * Lower logProb = rarer = lower percentile
+ *
+ * @param {number} logProb - Run log-probability
+ * @param {any} percentiles - Percentiles object
+ * @returns {number|null} Percentile (0-100) or null
+ */
+function computePercentile(logProb, percentiles) {
+  if (!percentiles || !percentiles.quantiles || percentiles.quantiles.length === 0) {
+    return null;
+  }
+  let count = 0;
+  for (const q of percentiles.quantiles) {
+    if (q.logProb >= logProb) count++;
+  }
+  return (count / percentiles.quantiles.length) * 100;
+}
+
+/**
+ * Find opponent name for a scenario outcome from its trace
+ *
+ * @param {any} scenarioOutcome - Scenario outcome from chain
+ * @param {any} data - Game data
+ * @returns {string|null} Opponent name or null
+ */
+function findOpponentName(scenarioOutcome, data) {
+  const trace = scenarioOutcome.trace || [];
+  for (let i = trace.length - 1; i >= 0; i--) {
+    const entry = trace[i];
+    if (entry.stepType === 'pick' && entry.pickedId) {
+      const pool = data.pools[entry.pool];
+      const entity = pool && pool.find(e => e.id === entry.pickedId);
+      if (entity) return entity.name;
+    }
+    if (entry.stepType === 'contest' && entry.opponent) {
+      for (const pool of Object.values(data.pools)) {
+        const entity = pool.find(e => e.id === entry.opponent);
+        if (entity) return entity.name;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Map final step ID to readable outcome name
+ *
+ * @param {string} stepId - Final step ID
+ * @returns {string} Readable outcome
+ */
+function outcomeLabel(stepId) {
+  const labels = { won: 'win', lost: 'lose', fled: 'flee', stand: 'standoff' };
+  return labels[stepId] || stepId;
+}
+
+/**
+ * Print a single prose run
+ *
+ * @param {any} result - Run result from generateRun
+ * @param {any} data - Game data
+ * @param {any} percentiles - Percentiles object or null
+ * @param {string} seed - Master seed for this run
+ */
+function printProseRun(result, data, percentiles, seed) {
+  const char = result.character;
+  const race = data.races[char.race] || {};
+  const archetype = data.archetypes[char.archetype] || {};
+  const trait = data.traits[char.trait] || {};
+  const powers = (char.powers || []).map(id => (data.powers[id] || {}).name || id).join(', ');
+  const weapon = char.weapon
+    ? `${(data.weapons.types[char.weapon.type] || {}).name || char.weapon.type} + ${(data.weapons.enchantments[char.weapon.enchantment] || {}).name || char.weapon.enchantment}`
+    : 'none';
+  const tier = 10 - Math.floor(char.strength);
+  const percentile = computePercentile(result.logProbability, percentiles);
+
+  console.log(`=== Run (seed: ${seed}, band: ${result.band}) ===`);
+  console.log(`Race: ${race.name || char.race} | Archetype: ${archetype.name || char.archetype} | Trait: ${trait.name || char.trait}`);
+  console.log(`Powers: ${powers || 'none'}`);
+  console.log(`Weapon: ${weapon}`);
+  console.log(`Strength tier: ${tier} | Rarity: ${percentile === null ? 'N/A' : `Rarer than ${percentile.toFixed(1)}% of runs`}`);
+  console.log('');
+
+  for (let i = 0; i < result.scenarios.length; i++) {
+    const sc = result.scenarios[i];
+    const scenario = data.scenarios[sc.scenarioId] || {};
+    const opponentName = findOpponentName(sc, data);
+
+    console.log(`  ${i + 1}. ${scenario.name || sc.scenarioId}${opponentName ? ` vs ${opponentName}` : ''}`);
+    console.log(`     Outcome: ${outcomeLabel(sc.finalStep)}`);
+    console.log(`     "${sc.text}"`);
+    if (sc.emittedTags && sc.emittedTags.length > 0) {
+      console.log(`     Carried: ${sc.emittedTags.join(', ')}`);
+    }
+  }
   console.log('');
 }
 
@@ -437,8 +646,13 @@ function printStats(stats) {
  */
 function main() {
   const args = process.argv.slice(2);
+  if (args[0] === '--prose') {
+    const n = args[1] ? parseInt(args[1], 10) : 3;
+    runProseMode(n);
+    return;
+  }
   const n = args[0] ? parseInt(args[0], 10) : 100000;
-  
+
   console.log('Loading data...');
   const data = loadData();
   

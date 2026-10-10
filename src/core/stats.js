@@ -346,6 +346,6 @@ export function getBandFromEffStr(effStr, data) {
     }
   }
   
-  // Should not happen with proper data, but default to lowest band
-  return '1-0';
+  // No matching band - data validation should have caught this
+  throw new Error(`No band found for tier ${bandTier} (effStr ${effStr})`);
 }

@@ -6,6 +6,7 @@ import {
   getOpponentTags,
   calculateEffectiveStrength,
   getEffectiveStats,
+  applyWoundedEffect,
   resolveFight,
   resolveCheck
 } from './stats.js';
@@ -56,7 +57,31 @@ export function executeScenario(scenarioId, character, carriedTags, data, rng, i
     rng,
     trace: []
   };
-  
+
+  /**
+   * Interpolate {placeholder} tokens in end-step text using bound values.
+   * Pure function: no randomness, no side effects.
+   * Unknown placeholders throw an error naming the scenario and step.
+   *
+   * @param {string} text - Raw end-step text
+   * @param {Object<string, any>} bindings - Bound entities (e.g. opponent)
+   * @param {string} scenarioId - Scenario ID for error messages
+   * @param {string} stepId - Step ID for error messages
+   * @returns {string} Interpolated text
+   */
+  function interpolateText(text, bindings, scenarioId, stepId) {
+    return text.replace(/\{(\w+)\}/g, (match, key) => {
+      if (!(key in bindings)) {
+        throw new Error(`Unknown placeholder {${key}} in scenario ${scenarioId} step ${stepId}`);
+      }
+      const value = bindings[key];
+      if (value === undefined || value === null) {
+        throw new Error(`Placeholder {${key}} is undefined or null in scenario ${scenarioId} step ${stepId}`);
+      }
+      return value && typeof value === 'object' && 'name' in value ? value.name : String(value);
+    });
+  }
+
   // Execute from start step
   let currentStep = scenario.start;
   let finalText = '';
@@ -70,8 +95,18 @@ export function executeScenario(scenarioId, character, carriedTags, data, rng, i
     }
     
     if (step.type === 'end') {
-      finalText = step.text;
+      finalText = interpolateText(step.text, context.bindings, scenarioId, currentStep);
       emittedTags = step.emits || [];
+      
+      // Add end trace entry
+      const stageId = `scenario:${scenarioId}:${currentStep}`;
+      context.trace.push({
+        stageId,
+        stepType: 'end',
+        finalStep: currentStep,
+        emittedTags: step.emits || []
+      });
+      
       break;
     }
     
@@ -177,9 +212,16 @@ function executeCheck(scenarioId, stepId, step, context) {
     carriedTags
   );
   
+  // For strength checks, use effective strength (includes weapon) with wounded penalty
+  let strengthForCheck = effectiveStats.str;
+  if (step.stat === 'strength') {
+    const effStr = calculateEffectiveStrength(character.strength, character.weapon, data);
+    strengthForCheck = applyWoundedEffect(effStr, carriedTags);
+  }
+  
   // Map stat name to value
   const statMap = {
-    'strength': effectiveStats.str,
+    'strength': strengthForCheck,
     'speed': effectiveStats.spd,
     'durability': effectiveStats.dur
   };

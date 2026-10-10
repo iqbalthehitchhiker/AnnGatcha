@@ -16,7 +16,7 @@ import {
   getBandFromEffStr,
   getCharacterTags
 } from '../src/core/stats.js';
-import { checkScenarioRequires, applyScenarioWeightMods } from '../src/core/scenario.js';
+import { checkScenarioRequires, applyScenarioWeightMods, executeScenario } from '../src/core/scenario.js';
 import { createRng } from '../src/core/rng.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -321,6 +321,139 @@ describe('M1a Acceptance Tests', () => {
         expect(e.weight / totalWeight10).toBeGreaterThan(0);
       }
     });
+
+    it('should interpolate {opponent} in end-step text', () => {
+      const data = loadData();
+
+      data.scenarios['test_interp'] = {
+        name: 'Test Interpolation',
+        bands: ['10-9'],
+        weight: 1,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'pick',
+        steps: {
+          pick: { type: 'pick', pool: 'basic_opponents', bind: 'opponent', next: 'won' },
+          won: { type: 'end', text: 'You defeat {opponent}.', emits: [] },
+        },
+      };
+
+      const character = {
+        race: 'human',
+        trait: 'brave',
+        strength: L(10, 0.3),
+        speed: L(10, 0.4),
+        durability: L(10, 0.5),
+        weapon: null,
+        powers: [],
+      };
+
+      const result = executeScenario('test_interp', character, [], data, () => 0.5);
+      expect(result.text).toContain('You defeat');
+      expect(result.text).not.toContain('{opponent}');
+    });
+
+    it('should throw on unknown placeholder in end-step text', () => {
+      const data = loadData();
+
+      data.scenarios['test_bad_interp'] = {
+        name: 'Test Bad Interpolation',
+        bands: ['10-9'],
+        weight: 1,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'end',
+        steps: {
+          end: { type: 'end', text: 'You fight {unknown}.', emits: [] },
+        },
+      };
+
+      const character = {
+        race: 'human',
+        trait: 'brave',
+        strength: L(10, 0.3),
+        speed: L(10, 0.4),
+        durability: L(10, 0.5),
+        weapon: null,
+        powers: [],
+      };
+
+      expect(() => executeScenario('test_bad_interp', character, [], data, () => 0.5))
+        .toThrow('Unknown placeholder {unknown} in scenario test_bad_interp step end');
+    });
+
+    it('should throw when a placeholder binding is undefined or null', () => {
+      const data = loadData();
+
+      data.scenarios['test_null_binding'] = {
+        name: 'Test Null Binding',
+        bands: ['10-9'],
+        weight: 1,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'end',
+        steps: {
+          end: { type: 'end', text: 'You fight {opponent}.', emits: [] },
+        },
+      };
+
+      const character = {
+        race: 'human',
+        trait: 'brave',
+        strength: L(10, 0.3),
+        speed: L(10, 0.4),
+        durability: L(10, 0.5),
+        weapon: null,
+        powers: [],
+      };
+
+      // Test undefined binding
+      expect(() => executeScenario('test_null_binding', character, [], data, () => 0.5, { opponent: undefined }))
+        .toThrow('Placeholder {opponent} is undefined or null in scenario test_null_binding step end');
+
+      // Test null binding
+      expect(() => executeScenario('test_null_binding', character, [], data, () => 0.5, { opponent: null }))
+        .toThrow('Placeholder {opponent} is undefined or null in scenario test_null_binding step end');
+    });
+
+    it('should use effStr with wounded penalty for strength checks', () => {
+      const data = loadData();
+
+      // Create a check scenario that uses strength stat
+      data.scenarios['test_strength_check'] = {
+        name: 'Test Strength Check',
+        bands: ['10-9'],
+        weight: 1,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'check',
+        steps: {
+          check: { type: 'check', stat: 'strength', difficulty: 0, baseOdds: 0.5, next: { success: 'success', fail: 'fail' } },
+          success: { type: 'end', text: 'Success', emits: [] },
+          fail: { type: 'end', text: 'Fail', emits: [] }
+        },
+      };
+
+      // Wounded character: raw strength 0.4, godslayer_blade (6.5) + cosmic_resonance (3)
+      // weaponLevel = 6.5 + 3 = 9.5, weaponStr = 9.5 - 1.0 penalty = 8.5
+      // effStr = max(0.4, 8.5) = 8.5, then applyWoundedEffect(8.5, ['wounded']) = 7.5
+      // This test verifies effStr is used for strength checks, not raw strength
+      const character = {
+        race: 'human',
+        trait: 'brave',
+        strength: 0.4,
+        speed: 5.0,
+        durability: 5.0,
+        weapon: { type: 'godslayer_blade', enchantment: 'cosmic_resonance' },
+        powers: [],
+      };
+
+      const carriedTags = ['wounded'];
+      const result = executeScenario('test_strength_check', character, carriedTags, data, () => 0.5);
+      
+      // Find the check trace entry
+      const checkEntry = result.trace.find(e => e.stepType === 'check');
+      expect(checkEntry).toBeDefined();
+      // Verifies that wounded penalty is correctly applied to effStr
+      expect(checkEntry.statValue).toBeGreaterThan(7);
+      expect(checkEntry.statValue).toBeLessThan(8);
+    });
   });
   
   describe('Bypass Test', () => {
@@ -591,6 +724,74 @@ describe('M1a Acceptance Tests', () => {
       // This test verifies the band calculation doesn't change
       const band2 = getBandFromEffStr(effStr, data);
       expect(band2).toBe(band1);
+    });
+  });
+  
+  describe('Scenario Repeat Penalty', () => {
+    it('should penalize repeats but allow them (prob > 0, prob < without penalty)', () => {
+      const data = loadData();
+      
+      // Create a minimal band with exactly two scenarios
+      // Both eligible, so without penalty each has 50% chance
+      data.scenarios['test_scenario_a'] = {
+        name: 'Test A',
+        bands: ['10-9'],
+        weight: 10,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'end',
+        steps: { end: { type: 'end', text: 'A', emits: [] } }
+      };
+      
+      data.scenarios['test_scenario_b'] = {
+        name: 'Test B',
+        bands: ['10-9'],
+        weight: 10,
+        requires: { tags: [], notTags: [], carried: [] },
+        start: 'end',
+        steps: { end: { type: 'end', text: 'B', emits: [] } }
+      };
+      
+      // Limit scenarios to just these two for band 10-9
+      const originalScenarios = { ...data.scenarios };
+      data.scenarios = {
+        test_scenario_a: data.scenarios.test_scenario_a,
+        test_scenario_b: data.scenarios.test_scenario_b,
+        do_nothing: data.scenarios.do_nothing
+      };
+      
+      // Run many times and count repeats
+      let repeatCount = 0;
+      const n = 10000;
+      
+      for (let i = 0; i < n; i++) {
+        const result = generateRun(data, `repeat_test_${i}`);
+        
+        // Only check band 10-9 runs
+        if (result.band === '10-9') {
+          const scenarioIds = result.scenarios.map(s => s.scenarioId);
+          
+          // Check if second scenario matches first (excluding do_nothing)
+          if (scenarioIds[1] === scenarioIds[0] && scenarioIds[0] !== 'do_nothing') {
+            repeatCount++;
+          }
+        }
+      }
+      
+      // Without penalty: 50% chance of repeat (0.5 * 0.5 = 0.25 for same scenario twice)
+      // With 0.2x penalty: first pick 50/50, second pick has penalized weight
+      // A first, then A again: 0.5 * (10*0.2)/(10*0.2 + 10) = 0.5 * 2/12 = 0.083
+      // Total repeat probability ≈ 0.083 + 0.083 = 0.167
+      
+      // Repeat should be possible (> 0)
+      expect(repeatCount).toBeGreaterThan(0);
+      
+      // Repeat should be less than without penalty (< 0.25 * n / 3 scenarios = 0.083 * n)
+      // With penalty expect around 0.167 per run * n/3 band match rate
+      // Very rough check: should be significantly less than 25% of eligible runs
+      expect(repeatCount).toBeLessThan(n * 0.2);
+      
+      // Restore original scenarios
+      data.scenarios = originalScenarios;
     });
   });
   

@@ -109,7 +109,7 @@ All ids are snake_case and unique per file. All weights are numbers > 0. R = req
 ```jsonc
 // config.json
 { "stageOrder": ["race","archetype","size","trait","powerCount","powers","strength","speedOffset","durOffset","weapon"],
-  "bands": { "10-9":[10,9], "8-7":[8,7], "6-4":[6,4], "3-2":[3,2], "1-0":[1,0] },
+  "bands": { "10-9":[10,9], "8-7":[8,7], "6-4":[6, 5, 4], "3-2":[3,2], "1-0":[1,0] },
   "tierTailFloor": 0.02, "maxPowers": 6,
   "powerCount": { "1":40,"2":30,"3":15,"4":8,"5":5,"all":2 },
   "powerCountShift": { "1":0,"2":0,"3":1,"4":1,"5":2,"all":2 },

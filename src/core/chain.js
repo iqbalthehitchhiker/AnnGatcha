@@ -51,6 +51,7 @@ export function executeChain(character, data, masterSeed, redoMap = {}) {
   const scenarios = [];
   let carriedTags = [];
   let persistentBindings = {}; // Carry rival across scenarios
+  const selectedScenarioIds = []; // Track selected scenarios for repeat penalty
   
   for (let i = 0; i < chainLength; i++) {
     const stageId = `chain:${i}`;
@@ -62,9 +63,13 @@ export function executeChain(character, data, masterSeed, redoMap = {}) {
       character,
       characterTags,
       carriedTags,
+      selectedScenarioIds,
       data,
       rng
     );
+    
+    // Track selected scenario
+    selectedScenarioIds.push(scenarioId);
     
     // Execute scenario with persistent bindings
     const outcome = executeScenario(
@@ -98,16 +103,19 @@ export function executeChain(character, data, masterSeed, redoMap = {}) {
 /**
  * Select a scenario for the current chain position (FR-X2, FR-X3)
  * Weighted pick over scenarios whose bands include the band and whose requires pass
+ * Repeats (scenarios already selected in this chain) get a 0.2x weight penalty,
+ * except for rematch_rival which is exempt.
  * 
  * @param {string} band - Character's band
  * @param {any} character - Character object
  * @param {string[]} characterTags - Character's tags
  * @param {string[]} carriedTags - Currently carried tags
+ * @param {string[]} selectedScenarioIds - Scenarios already selected in this chain
  * @param {any} data - Game data
  * @param {() => number} rng - RNG function
  * @returns {string} Selected scenario ID
  */
-function selectScenario(band, character, characterTags, carriedTags, data, rng) {
+function selectScenario(band, character, characterTags, carriedTags, selectedScenarioIds, data, rng) {
   // Filter scenarios by band and requires
   const validScenarios = [];
   
@@ -123,13 +131,19 @@ function selectScenario(band, character, characterTags, carriedTags, data, rng) 
     }
     
     // Apply weight mods
-    const weight = applyScenarioWeightMods(
+    let weight = applyScenarioWeightMods(
       scenario,
       scenario.weight,
       character,
       characterTags,
       carriedTags
     );
+    
+    // Apply repeat penalty (0.2x) for scenarios already selected in this chain
+    // Exempt rematch_rival only
+    if (selectedScenarioIds.includes(scenarioId) && scenarioId !== 'rematch_rival') {
+      weight *= 0.2;
+    }
     
     validScenarios.push({
       id: scenarioId,

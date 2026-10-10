@@ -37,6 +37,9 @@ export function validate(data) {
   // Validate weights are positive
   validatePositiveWeights(data, errors);
 
+  // Validate band coverage (all tiers 0-10 map to exactly one band)
+  validateBandCoverage(data, errors);
+
   // Validate referenced IDs exist
   validateReferences(data, errors);
 
@@ -134,6 +137,31 @@ function validatePositiveWeights(data, errors) {
   for (const [poolId, pool] of Object.entries(data.pools)) {
     for (const entry of pool) {
       if (entry.weight <= 0) errors.push(`Pool ${poolId} entry ${entry.id} has non-positive weight`);
+    }
+  }
+}
+
+/**
+ * Validate band coverage: all tiers 0-10 map to exactly one band
+ */
+function validateBandCoverage(data, errors) {
+  const tierToBand = {};
+  
+  // Map each tier to its band(s)
+  for (const [bandId, tiers] of Object.entries(data.config.bands)) {
+    for (const tier of tiers) {
+      if (tierToBand[tier]) {
+        errors.push(`Tier ${tier} is in multiple bands: ${tierToBand[tier]} and ${bandId}`);
+      } else {
+        tierToBand[tier] = bandId;
+      }
+    }
+  }
+  
+  // Check all tiers 0-10 are covered
+  for (let tier = 0; tier <= 10; tier++) {
+    if (!tierToBand[tier]) {
+      errors.push(`Tier ${tier} is not covered by any band`);
     }
   }
 }

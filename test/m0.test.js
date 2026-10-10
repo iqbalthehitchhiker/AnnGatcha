@@ -110,6 +110,23 @@ describe('M0 Acceptance Tests', () => {
     });
   });
   
+  describe('Powers Without Replacement', () => {
+    it('should never pick duplicate powers over 10000 seeds', () => {
+      const data = loadData();
+      
+      for (let i = 0; i < 10000; i++) {
+        const seed = `power_unique_${i}`;
+        const result = generateRun(data, seed);
+        
+        // Check for duplicates
+        const powers = result.character.powers || [];
+        const uniquePowers = new Set(powers);
+        
+        expect(uniquePowers.size).toBe(powers.length);
+      }
+    });
+  });
+  
   describe('Picker Distribution', () => {
     it('should match expected distribution within 4*sqrt(N*p*(1-p)) for 100k picks', () => {
       const n = 100000;
@@ -544,6 +561,14 @@ describe('M0 Acceptance Tests', () => {
       
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('must be an array'))).toBe(true);
+    });
+
+    it('should fail for band gap (tier not covered)', () => {
+      const data = loadFixture('invalid-band-gap');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('Tier 2 is not covered by any band'))).toBe(true);
     });
   });
   

@@ -1,6 +1,6 @@
 {
   "do_nothing": {
-    "name": "[PLACEHOLDER] Do Nothing",
+    "name": "Do Nothing",
     "bands": ["10-9", "8-7", "6-4", "3-2", "1-0"],
     "weight": 5,
     "requires": {
@@ -16,13 +16,13 @@
     "steps": {
       "idle": {
         "type": "end",
-        "text": "[PLACEHOLDER] You rest and do nothing of note.",
+        "text": "You keep your head down and let the hours pass. Nothing finds you, and nothing is lost.",
         "emits": []
       }
     }
   },
   "street_fight": {
-    "name": "[PLACEHOLDER] Street Fight",
+    "name": "Street Fight",
     "bands": ["10-9"],
     "weight": 10,
     "requires": {
@@ -58,28 +58,28 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You defeat your opponent.",
+        "text": "{opponent} swings first and misses. You don't.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] You are defeated.",
+        "text": "{opponent} puts you on the pavement. You get up eventually, but it hurts.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You escape.",
+        "text": "One look at {opponent} and your legs make the decision for you.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] Neither side gains advantage.",
+        "text": "You and {opponent} circle until the crowd gets bored. Neither of you forgets it.",
         "emits": ["rival"]
       }
     }
   },
   "assassination": {
-    "name": "[PLACEHOLDER] Assassination",
+    "name": "Assassination",
     "bands": ["10-9"],
     "weight": 8,
     "requires": {
@@ -98,7 +98,7 @@
       "check": {
         "type": "check",
         "stat": "speed",
-        "difficulty": 10.0,
+        "difficulty": 1.0,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -107,18 +107,18 @@
       },
       "success": {
         "type": "end",
-        "text": "[PLACEHOLDER] You complete the hit undetected.",
+        "text": "The mark never sees the blade, and no one sees you. You are three streets away before the body settles.",
         "emits": []
       },
       "fail": {
         "type": "end",
-        "text": "[PLACEHOLDER] The target escapes.",
+        "text": "Your strike falls a breath short. The target is gone, and now they know your face.",
         "emits": []
       }
     }
   },
   "urban_brawl": {
-    "name": "[PLACEHOLDER] Urban Brawl",
+    "name": "Urban Brawl",
     "bands": ["8-7"],
     "weight": 10,
     "requires": {
@@ -154,28 +154,28 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You win the fight.",
+        "text": "The fight with {opponent} spills across three alleys. You're the one still standing.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] You lose the fight.",
+        "text": "{opponent} gets the better of you in front of everyone.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You flee.",
+        "text": "You slip away from {opponent} through a gap in the crowd.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] Stalemate.",
+        "text": "You and {opponent} trade blows until the sirens start. You both vanish, and this isn't over.",
         "emits": ["rival"]
       }
     }
   },
   "heist": {
-    "name": "[PLACEHOLDER] Heist",
+    "name": "Heist",
     "bands": ["8-7"],
     "weight": 8,
     "requires": {
@@ -194,7 +194,7 @@
       "check": {
         "type": "check",
         "stat": "speed",
-        "difficulty": 8.0,
+        "difficulty": 2.5,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -203,18 +203,18 @@
       },
       "success": {
         "type": "end",
-        "text": "[PLACEHOLDER] You steal the prize.",
+        "text": "You're in and out before anyone notices the vault is lighter.",
         "emits": []
       },
       "fail": {
         "type": "end",
-        "text": "[PLACEHOLDER] You are caught.",
+        "text": "A floorboard creaks and the lights come on. You're caught.",
         "emits": []
       }
     }
   },
   "demon_duel": {
-    "name": "[PLACEHOLDER] Demon Duel",
+    "name": "Demon Duel",
     "bands": ["6-4"],
     "weight": 10,
     "requires": {
@@ -250,28 +250,28 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You vanquish the demon.",
+        "text": "{opponent} overextends, and you end it before the flames can gather again.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] The demon defeats you.",
+        "text": "{opponent} leaves you broken on the stones, alive only because it savored the fight.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You retreat.",
+        "text": "You tear free of {opponent} and don't look back until the heat fades behind you.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] The battle is inconclusive.",
+        "text": "You and {opponent} wheel and strike, neither finding the killing blow, until the rift seals and it is gone.",
         "emits": ["rival"]
       }
     }
   },
   "ambush": {
-    "name": "[PLACEHOLDER] Ambush",
+    "name": "Ambush",
     "bands": ["6-4"],
     "weight": 8,
     "requires": {
@@ -290,7 +290,7 @@
       "check": {
         "type": "check",
         "stat": "speed",
-        "difficulty": 5.0,
+        "difficulty": 4.0,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -299,18 +299,18 @@
       },
       "success": {
         "type": "end",
-        "text": "[PLACEHOLDER] Your ambush succeeds.",
+        "text": "They walk into the dark expecting nothing. Yours is the first and only move.",
         "emits": []
       },
       "fail": {
         "type": "end",
-        "text": "[PLACEHOLDER] Your ambush fails.",
+        "text": "Your first strike tips them off. The surprise is spent, and the odds turn ugly.",
         "emits": []
       }
     }
   },
   "challenge_god": {
-    "name": "[PLACEHOLDER] Challenge a God",
+    "name": "Challenge a God",
     "bands": ["3-2"],
     "weight": 10,
     "requires": {
@@ -346,28 +346,28 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You slay the god.",
+        "text": "{opponent} kneels, and the sky dims with its last breath. Every shrine will remember your name.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] The god destroys you.",
+        "text": "{opponent} unmakes you where you stand. What is left is not enough to bury.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You escape the god.",
+        "text": "You flee {opponent}, and the ground closes behind you. It will be waiting when you dare return.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] The god respects your strength.",
+        "text": "You and {opponent} fight to a halt. It lets you walk away, an honor granted to no one else.",
         "emits": ["rival"]
       }
     }
   },
   "infiltrate_fortress": {
-    "name": "[PLACEHOLDER] Infiltrate Divine Fortress",
+    "name": "Infiltrate Divine Fortress",
     "bands": ["3-2"],
     "weight": 8,
     "requires": {
@@ -386,7 +386,7 @@
       "check": {
         "type": "check",
         "stat": "speed",
-        "difficulty": 3.0,
+        "difficulty": 7.5,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -395,18 +395,18 @@
       },
       "success": {
         "type": "end",
-        "text": "[PLACEHOLDER] You breach the fortress.",
+        "text": "The wards fall silent one by one. You are inside, and no alarm has cried out.",
         "emits": []
       },
       "fail": {
         "type": "end",
-        "text": "[PLACEHOLDER] The fortress defenses catch you.",
+        "text": "A ward flares under your hand. The halls wake, and every door begins to close.",
         "emits": []
       }
     }
   },
   "cosmic_battle": {
-    "name": "[PLACEHOLDER] Cosmic Battle",
+    "name": "Cosmic Battle",
     "bands": ["1-0"],
     "weight": 10,
     "requires": {
@@ -442,28 +442,28 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You prevail in cosmic combat.",
+        "text": "{opponent} comes apart across the void. You remain, and the stars take note.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] You are defeated.",
+        "text": "{opponent} scatters you across a thousand skies. Whether you reform is no longer yours to decide.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You withdraw.",
+        "text": "You pull back from {opponent} through the dark, conceding a war no one could win.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] Neither can overcome the other.",
+        "text": "You and {opponent} exhaust the space between you. The universe goes on, and so do you both.",
         "emits": ["rival"]
       }
     }
   },
   "reality_break": {
-    "name": "[PLACEHOLDER] Reality Break",
+    "name": "Reality Break",
     "bands": ["1-0"],
     "weight": 8,
     "requires": {
@@ -480,7 +480,7 @@
       "check": {
         "type": "check",
         "stat": "strength",
-        "difficulty": 0.5,
+        "difficulty": 8,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -489,18 +489,18 @@
       },
       "success": {
         "type": "end",
-        "text": "[PLACEHOLDER] You shatter reality itself.",
+        "text": "The seam gives under your strength. What was fixed comes loose, and you step through.",
         "emits": []
       },
       "fail": {
         "type": "end",
-        "text": "[PLACEHOLDER] Reality resists you.",
+        "text": "Reality holds. You feel it push back, and something in you gives instead.",
         "emits": []
       }
     }
   },
   "rematch_rival": {
-    "name": "[PLACEHOLDER] Rematch with Rival",
+    "name": "Rematch with Rival",
     "bands": ["10-9", "8-7", "6-4", "3-2", "1-0"],
     "weight": 15,
     "requires": {
@@ -528,22 +528,22 @@
       },
       "won": {
         "type": "end",
-        "text": "[PLACEHOLDER] You defeat your rival decisively.",
+        "text": "The rematch ends the way the first should have. You leave them on the ground and keep walking.",
         "emits": []
       },
       "lost": {
         "type": "end",
-        "text": "[PLACEHOLDER] Your rival defeats you.",
+        "text": "The rivalry settles the score against you this time. You carry away the bruise and the lesson.",
         "emits": ["wounded"]
       },
       "fled": {
         "type": "end",
-        "text": "[PLACEHOLDER] You escape your rival.",
+        "text": "You disengage and vanish into the crowd. There will be another round, and you intend to choose it.",
         "emits": []
       },
       "stand": {
         "type": "end",
-        "text": "[PLACEHOLDER] The rivalry continues.",
+        "text": "Neither of you lands the decisive blow. The feud walks away with both of you, unsatisfied.",
         "emits": ["rival"]
       }
     }

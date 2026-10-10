@@ -264,7 +264,7 @@ function executePowersStage(data, character, rng, trace) {
     }
   }
   
-  // Pick powers
+  // Pick powers without replacement
   character.powers = [];
   for (let i = 0; i < character.powerCount; i++) {
     const entries = Object.entries(powerWeights).map(([id, weight]) => ({
@@ -272,8 +272,16 @@ function executePowersStage(data, character, rng, trace) {
       weight
     }));
     
+    // Stop if pool is exhausted
+    if (entries.length === 0) {
+      break;
+    }
+    
     const result = pick(entries, rng, `powers:${i}`);
     character.powers.push(result.pickedId);
+    
+    // Remove picked power from pool for next iteration
+    delete powerWeights[result.pickedId];
     
     // Note: Per FR-M4, individual power picks are excluded from rarity
     // So we don't add them to trace, or we mark them differently

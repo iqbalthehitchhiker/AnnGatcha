@@ -33,7 +33,7 @@
     { "id": "storm_god", "name": "[PLACEHOLDER] Storm God", "weight": 8,
       "str": 8.5, "spd": 7.5, "dur": 8.0, "tags": ["divine", "storm"] },
     { "id": "lesser_god", "name": "[PLACEHOLDER] Lesser God", "weight": 8,
-      "str": 6.5, "spd": 5.0, "dur": 7.0, "tags": ["divine"] },
+      "str": 7.5, "spd": 7.0, "dur": 8.0, "tags": ["divine"] },
     { "id": "void_herald", "name": "[PLACEHOLDER] Void Herald", "weight": 4,
       "str": 9.0, "spd": 8.5, "dur": 9.0, "tags": ["divine", "cosmic"] }
   ]
