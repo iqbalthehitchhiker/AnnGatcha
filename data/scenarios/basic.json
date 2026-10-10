@@ -213,63 +213,6 @@
       }
     }
   },
-  "demon_duel": {
-    "name": "Demon Duel",
-    "bands": ["6-4"],
-    "weight": 10,
-    "requires": {
-      "tags": [],
-      "notTags": [],
-      "carried": []
-    },
-    "weightMods": [
-      { "if": "trait:ambitious", "mult": 1.6 },
-      { "if": "trait:cautious", "mult": 0.5 },
-      { "if": "trait:bloodthirsty", "mult": 2.0 },
-      { "if": "trait:cunning", "mult": 0.7 },
-      { "if": "trait:honorable", "mult": 1.4 }
-    ],
-    "start": "pick",
-    "steps": {
-      "pick": {
-        "type": "pick",
-        "pool": "midtier_opponents",
-        "bind": "opponent",
-        "next": "fight"
-      },
-      "fight": {
-        "type": "contest",
-        "mode": "fight",
-        "vs": "opponent",
-        "next": {
-          "win": "won",
-          "lose": "lost",
-          "flee": "fled",
-          "standoff": "stand"
-        }
-      },
-      "won": {
-        "type": "end",
-        "text": "{opponent} overextends, and you end it before the flames can gather again.",
-        "emits": []
-      },
-      "lost": {
-        "type": "end",
-        "text": "{opponent} leaves you broken on the stones, alive only because it savored the fight.",
-        "emits": ["wounded"]
-      },
-      "fled": {
-        "type": "end",
-        "text": "You tear free of {opponent} and don't look back until the heat fades behind you.",
-        "emits": []
-      },
-      "stand": {
-        "type": "end",
-        "text": "You and {opponent} wheel and strike, neither finding the killing blow, until the rift seals and it is gone.",
-        "emits": ["rival"]
-      }
-    }
-  },
   "ambush": {
     "name": "Ambush",
     "bands": ["6-4"],
@@ -480,7 +423,7 @@
       "check": {
         "type": "check",
         "stat": "strength",
-        "difficulty": 8,
+        "difficulty": 9.5,
         "baseOdds": 0.5,
         "next": {
           "success": "success",
@@ -547,5 +490,189 @@
         "emits": ["rival"]
       }
     }
+  },
+  "pickpocket": {
+  "name": "Pickpocket",
+  "bands": ["10-9"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:cunning", "mult": 1.5 },
+    { "if": "trait:honorable", "mult": 0.4 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "speed", "difficulty": 1.0, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "Two fingers, one wallet, and a shrug at the man you just bumped. He thanks you for your help.", "emits": [] },
+    "fail": { "type": "end", "text": "A hand clamps your wrist mid-reach. You leave the market faster than you entered it.", "emits": [] }
   }
+},
+"back_alley_dare": {
+  "name": "Back Alley Dare",
+  "bands": ["10-9"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:brave", "mult": 1.4 },
+    { "if": "trait:cautious", "mult": 0.5 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "durability", "difficulty": 1.0, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "You take the dare, the dumpster, and the three-story drop. You walk away and the crowd goes quiet.", "emits": [] },
+    "fail": { "type": "end", "text": "The fall is shorter than you hoped and the landing is not. You'll feel it for days.", "emits": [] }
+  }
+},
+"tavern_brawl": {
+  "name": "Tavern Brawl",
+  "bands": ["8-7"],
+  "weight": 9,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:bloodthirsty", "mult": 1.8 },
+    { "if": "trait:cautious", "mult": 0.6 }
+  ],
+  "start": "pick",
+  "steps": {
+    "pick": { "type": "pick", "pool": "basic_opponents", "bind": "opponent", "next": "fight" },
+    "fight": { "type": "contest", "mode": "fight", "vs": "opponent",
+               "next": { "win": "won", "lose": "lost", "flee": "fled", "standoff": "stand" } },
+    "won": { "type": "end", "text": "A chair breaks over the table, and {opponent} goes down with it. The bartender slides you a drink.", "emits": [] },
+    "lost": { "type": "end", "text": "{opponent} sends you through the front window. The street is cold, but the bruises are warm.", "emits": ["wounded"] },
+    "fled": { "type": "end", "text": "You see {opponent} reach for the bottle and decide the door is a better idea.", "emits": [] },
+    "stand": { "type": "end", "text": "You and {opponent} glare across a ruined table until the guards arrive. Both of you remember it.", "emits": ["rival"] }
+  }
+},
+"rooftop_chase": {
+  "name": "Rooftop Chase",
+  "bands": ["8-7"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:ambitious", "mult": 1.3 },
+    { "if": "trait:cautious", "mult": 0.7 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "speed", "difficulty": 2.5, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "You clear the gap with a hand to spare and don't look back. Behind you, the shouting fades.", "emits": [] },
+    "fail": { "type": "end", "text": "The next roof is farther than it looked. You pick yourself out of someone's laundry.", "emits": [] }
+  }
+},
+"monster_hunt": {
+  "name": "Monster Hunt",
+  "bands": ["6-4"],
+  "weight": 9,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:ambitious", "mult": 1.4 },
+    { "if": "trait:bloodthirsty", "mult": 1.5 }
+  ],
+  "start": "pick",
+  "steps": {
+    "pick": { "type": "pick", "pool": "midtier_opponents", "bind": "opponent", "next": "fight" },
+    "fight": { "type": "contest", "mode": "fight", "vs": "opponent",
+               "next": { "win": "won", "lose": "lost", "flee": "fled", "standoff": "stand" } },
+    "won": { "type": "end", "text": "You track {opponent} to its lair and leave with proof. The village will pay in stories for years.", "emits": [] },
+    "lost": { "type": "end", "text": "{opponent} was ready for you. You crawl home with the hunt unfinished.", "emits": ["wounded"] },
+    "fled": { "type": "end", "text": "One look at {opponent} and you decide the bounty isn't worth it.", "emits": [] },
+    "stand": { "type": "end", "text": "You and {opponent} circle through the night until dawn breaks. It will be back, and so will you.", "emits": ["rival"] }
+  }
+},
+"relic_theft": {
+  "name": "Relic Theft",
+  "bands": ["6-4"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:cunning", "mult": 1.5 },
+    { "if": "trait:honorable", "mult": 0.4 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "speed", "difficulty": 4.0, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "The vault door swings shut behind you, and the relic hums in your pack. You are gone before the alarm.", "emits": [] },
+    "fail": { "type": "end", "text": "The relic's wards light up the whole chamber. You leave empty-handed and ashamed.", "emits": [] }
+  }
+},
+"divine_trial": {
+  "name": "Divine Trial",
+  "bands": ["3-2"],
+  "weight": 9,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:honorable", "mult": 1.5 },
+    { "if": "trait:brave", "mult": 1.3 },
+    { "if": "trait:cautious", "mult": 0.5 }
+  ],
+  "start": "pick",
+  "steps": {
+    "pick": { "type": "pick", "pool": "gods", "bind": "opponent", "next": "fight" },
+    "fight": { "type": "contest", "mode": "fight", "vs": "opponent",
+               "next": { "win": "won", "lose": "lost", "flee": "fled", "standoff": "stand" } },
+    "won": { "type": "end", "text": "{opponent} bows its head and names you worthy. The temple bells ring without anyone touching them.", "emits": [] },
+    "lost": { "type": "end", "text": "{opponent} judges you wanting. You wake on the temple steps with the verdict still burning.", "emits": ["wounded"] },
+    "fled": { "type": "end", "text": "You leave {opponent}'s trial unfinished and tell no one why.", "emits": [] },
+    "stand": { "type": "end", "text": "{opponent} and you hold the line until the sun sets. Neither of you has proven anything, and neither will forget it.", "emits": ["rival"] }
+  }
+},
+"tidebreaker": {
+  "name": "Tidebreaker",
+  "bands": ["3-2"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:ambitious", "mult": 1.3 },
+    { "if": "trait:bloodthirsty", "mult": 0.7 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "strength", "difficulty": 7.5, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "The wave rears over the harbor, and you meet it with open hands. It breaks around you, and the town stays dry.", "emits": [] },
+    "fail": { "type": "end", "text": "The sea takes the harbor and teaches you what it means to be small.", "emits": [] }
+  }
+},
+"dethrone_primordial": {
+  "name": "Dethrone a Primordial",
+  "bands": ["1-0"],
+  "weight": 10,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:ambitious", "mult": 1.8 },
+    { "if": "trait:bloodthirsty", "mult": 1.5 },
+    { "if": "trait:cautious", "mult": 0.4 }
+  ],
+  "start": "pick",
+  "steps": {
+    "pick": { "type": "pick", "pool": "primordials", "bind": "opponent", "next": "fight" },
+    "fight": { "type": "contest", "mode": "fight", "vs": "opponent",
+               "next": { "win": "won", "lose": "lost", "flee": "fled", "standoff": "stand" } },
+    "won": { "type": "end", "text": "{opponent} was here before the first star. When you are done, it is only a story.", "emits": [] },
+    "lost": { "type": "end", "text": "{opponent} unmakes your armor, then your name. You come back, but not whole.", "emits": ["wounded"] },
+    "fled": { "type": "end", "text": "You step out of reality before {opponent} can finish the thought.", "emits": [] },
+    "stand": { "type": "end", "text": "{opponent} and you shake the sky for an age. The sky wins.", "emits": ["rival"] }
+  }
+},
+"unwrite_a_law": {
+  "name": "Unwrite a Law",
+  "bands": ["1-0"],
+  "weight": 8,
+  "requires": { "tags": [], "notTags": [], "carried": [] },
+  "weightMods": [
+    { "if": "trait:cunning", "mult": 1.5 },
+    { "if": "trait:honorable", "mult": 0.5 }
+  ],
+  "start": "check",
+  "steps": {
+    "check": { "type": "check", "stat": "speed", "difficulty": 9.5, "baseOdds": 0.5,
+               "next": { "success": "success", "fail": "fail" } },
+    "success": { "type": "end", "text": "You find the seam in the rule and pull. Gravity hesitates, then forgets what it was doing.", "emits": [] },
+    "fail": { "type": "end", "text": "The law notices you first. For one second, you are the thing being rewritten.", "emits": [] }
+  }
+}
 }

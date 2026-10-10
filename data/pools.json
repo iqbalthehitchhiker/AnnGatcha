@@ -36,5 +36,13 @@
       "str": 7.5, "spd": 7.0, "dur": 8.0, "tags": ["divine"] },
     { "id": "void_herald", "name": "[PLACEHOLDER] Void Herald", "weight": 4,
       "str": 9.0, "spd": 8.5, "dur": 9.0, "tags": ["divine", "cosmic"] }
-  ]
+  ],
+  "primordials": [
+  { "id": "elder_wyrm", "name": "Elder Wyrm", "weight": 10,
+    "str": 10.0, "spd": 9.0, "dur": 10.0, "tags": ["draconic"] },
+  { "id": "star_eater", "name": "Star-Eater", "weight": 8,
+    "str": 10.5, "spd": 9.5, "dur": 10.5, "tags": ["cosmic", "divine"] },
+  { "id": "void_leviathan", "name": "Void Leviathan", "weight": 6,
+    "str": 10.5, "spd": 8.5, "dur": 10.5, "tags": ["cosmic"] }
+]
 }
