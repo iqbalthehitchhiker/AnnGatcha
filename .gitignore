@@ -4,3 +4,9 @@ node_modules/
 .vscode/
 .idea/
 data/percentiles.json
+
+# Generated audit/session artifacts (see AGENTS.md)
+*-REPORT.md
+SCENARIO-SELECTION-DIAGNOSTIC.md
+STEP1-FINDINGS.md
+reports/
