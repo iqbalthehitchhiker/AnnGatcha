@@ -70,7 +70,7 @@
     "godslayer_blade": {
       "name": "Godslayer Blade",
       "weight": 1,
-      "level": 7,
+      "level": 6.5,
       "tags": ["blade", "legendary", "divine"]
     },
     "starforged_blade": {

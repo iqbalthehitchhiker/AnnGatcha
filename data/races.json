@@ -1,23 +1,25 @@
 {
+  "goblin": {
+    "name": "[PLACEHOLDER] Goblin",
+    "weight": 8,
+    "archetypes": { "warrior": 4, "mage": 1 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 50, "9": 30, "8": 15, "7": 5 },
+    "offsets": {
+      "spd": { "-1": 2, "0": 5, "1": 3 },
+      "dur": { "-1": 4, "0": 5, "1": 1 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.5,
+    "tags": ["mortal"],
+    "mods": []
+  },
   "human": {
     "name": "[PLACEHOLDER] Human",
     "weight": 10,
-    "archetypes": {
-      "warrior": 5,
-      "mage": 3
-    },
-    "sizes": {
-      "medium": 1
-    },
-    "tierWeights": {
-      "10": 50,
-      "9": 30,
-      "8": 10,
-      "7": 5,
-      "6": 3,
-      "5": 1,
-      "4": 1
-    },
+    "archetypes": { "warrior": 5, "mage": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 50, "9": 30, "8": 10, "7": 5, "6": 3, "5": 1, "4": 1 },
     "offsets": {
       "spd": { "-1": 2, "0": 5, "1": 2 },
       "dur": { "-1": 2, "0": 5, "1": 2 }
@@ -27,25 +29,57 @@
     "tags": ["mortal"],
     "mods": []
   },
+  "dwarf": {
+    "name": "[PLACEHOLDER] Dwarf",
+    "weight": 7,
+    "archetypes": { "warrior": 7, "mage": 1 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 35, "9": 30, "8": 20, "7": 10, "6": 5 },
+    "offsets": {
+      "spd": { "-2": 3, "-1": 5, "0": 2 },
+      "dur": { "0": 2, "1": 5, "2": 3 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.7,
+    "tags": ["mortal"],
+    "mods": []
+  },
+  "orc": {
+    "name": "[PLACEHOLDER] Orc",
+    "weight": 7,
+    "archetypes": { "warrior": 7, "elemental": 2 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "10": 30, "9": 30, "8": 20, "7": 12, "6": 6, "5": 2 },
+    "offsets": {
+      "spd": { "-1": 3, "0": 5, "1": 2 },
+      "dur": { "0": 2, "1": 5, "2": 3 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.6,
+    "tags": ["mortal"],
+    "mods": []
+  },
+  "beastfolk": {
+    "name": "[PLACEHOLDER] Beastfolk",
+    "weight": 7,
+    "archetypes": { "warrior": 5, "elemental": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 30, "9": 30, "8": 20, "7": 12, "6": 6, "5": 2 },
+    "offsets": {
+      "spd": { "0": 2, "1": 5, "2": 3 },
+      "dur": { "-1": 3, "0": 5, "1": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.5,
+    "tags": ["mortal", "nature"],
+    "mods": []
+  },
   "elf": {
     "name": "[PLACEHOLDER] Elf",
     "weight": 8,
-    "archetypes": {
-      "mage": 6,
-      "warrior": 2
-    },
-    "sizes": {
-      "medium": 1
-    },
-    "tierWeights": {
-      "10": 40,
-      "9": 35,
-      "8": 15,
-      "7": 5,
-      "6": 3,
-      "5": 1,
-      "4": 1
-    },
+    "archetypes": { "mage": 6, "warrior": 2 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 40, "9": 35, "8": 15, "7": 5, "6": 3, "5": 1, "4": 1 },
     "offsets": {
       "spd": { "0": 3, "1": 5, "2": 2 },
       "dur": { "-2": 3, "-1": 5, "0": 2 }
@@ -55,26 +89,177 @@
     "tags": ["mortal", "fey"],
     "mods": []
   },
+  "merfolk": {
+    "name": "[PLACEHOLDER] Merfolk",
+    "weight": 5,
+    "archetypes": { "mage": 4, "warrior": 3, "elemental": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 25, "9": 25, "8": 20, "7": 15, "6": 10, "5": 5 },
+    "offsets": {
+      "spd": { "-1": 2, "0": 5, "1": 3 },
+      "dur": { "-1": 2, "0": 5, "1": 3 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.4,
+    "tags": ["mortal", "nature"],
+    "mods": []
+  },
+  "kitsune": {
+    "name": "[PLACEHOLDER] Kitsune",
+    "weight": 4,
+    "archetypes": { "mage": 7, "warrior": 1, "elemental": 2 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 20, "9": 25, "8": 20, "7": 15, "6": 10, "5": 6, "4": 3, "3": 1 },
+    "offsets": {
+      "spd": { "0": 2, "1": 5, "2": 3 },
+      "dur": { "-2": 3, "-1": 5, "0": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.3,
+    "tags": ["fey", "illusion"],
+    "mods": []
+  },
+  "vampire": {
+    "name": "[PLACEHOLDER] Vampire",
+    "weight": 4,
+    "archetypes": { "warrior": 4, "mage": 6 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 20, "9": 25, "8": 20, "7": 15, "6": 10, "5": 6, "4": 3, "3": 1 },
+    "offsets": {
+      "spd": { "0": 2, "1": 5, "2": 3 },
+      "dur": { "-1": 2, "0": 4, "1": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.4,
+    "tags": ["death"],
+    "mods": []
+  },
+  "undead": {
+    "name": "[PLACEHOLDER] Undead",
+    "weight": 4,
+    "archetypes": { "warrior": 5, "mage": 5 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 15, "9": 20, "8": 20, "7": 15, "6": 12, "5": 8, "4": 5, "3": 3, "2": 2 },
+    "offsets": {
+      "spd": { "-2": 3, "-1": 5, "0": 2 },
+      "dur": { "0": 2, "1": 4, "2": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.4,
+    "tags": ["death"],
+    "mods": []
+  },
+  "slime": {
+    "name": "[PLACEHOLDER] Slime",
+    "weight": 5,
+    "archetypes": { "elemental": 5, "mage": 4, "warrior": 1 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "10": 20, "9": 20, "8": 20, "7": 15, "6": 10, "5": 7, "4": 4, "3": 2, "2": 2 },
+    "offsets": {
+      "spd": { "-2": 3, "-1": 4, "0": 3 },
+      "dur": { "0": 2, "1": 4, "2": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["nature"],
+    "mods": []
+  },
+  "giant": {
+    "name": "[PLACEHOLDER] Giant",
+    "weight": 4,
+    "archetypes": { "warrior": 8, "elemental": 2 },
+    "sizes": { "huge": 1 },
+    "tierWeights": { "10": 15, "9": 20, "8": 20, "7": 15, "6": 12, "5": 8, "4": 5, "3": 3, "2": 2 },
+    "offsets": {
+      "spd": { "-2": 4, "-1": 4, "0": 2 },
+      "dur": { "0": 2, "1": 5, "2": 3 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.6,
+    "tags": ["mortal"],
+    "mods": []
+  },
+  "fairy": {
+    "name": "[PLACEHOLDER] Fairy",
+    "weight": 4,
+    "archetypes": { "mage": 7, "elemental": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 15, "9": 20, "8": 20, "7": 15, "6": 12, "5": 8, "4": 5, "3": 3, "2": 2 },
+    "offsets": {
+      "spd": { "0": 2, "1": 5, "2": 3 },
+      "dur": { "-2": 4, "-1": 4, "0": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["fey", "illusion"],
+    "mods": []
+  },
+  "spirit": {
+    "name": "[PLACEHOLDER] Spirit",
+    "weight": 3,
+    "archetypes": { "mage": 7, "elemental": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "10": 12, "9": 18, "8": 18, "7": 15, "6": 12, "5": 9, "4": 6, "3": 4, "2": 3, "1": 2, "0": 1 },
+    "offsets": {
+      "spd": { "0": 2, "1": 4, "2": 4 },
+      "dur": { "-2": 4, "-1": 4, "0": 2 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["magic"],
+    "mods": []
+  },
+  "construct": {
+    "name": "[PLACEHOLDER] Construct",
+    "weight": 4,
+    "archetypes": { "warrior": 5, "mage": 5 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "10": 10, "9": 15, "8": 18, "7": 15, "6": 12, "5": 10, "4": 7, "3": 5, "2": 4, "1": 2, "0": 2 },
+    "offsets": {
+      "spd": { "-2": 3, "-1": 4, "0": 3 },
+      "dur": { "0": 2, "1": 4, "2": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.2,
+    "tags": ["physical_immunity"],
+    "mods": []
+  },
+  "demon": {
+    "name": "[PLACEHOLDER] Demon",
+    "weight": 4,
+    "archetypes": { "warrior": 4, "mage": 6 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "10": 10, "9": 15, "8": 18, "7": 15, "6": 12, "5": 10, "4": 7, "3": 5, "2": 4, "1": 2, "0": 2 },
+    "offsets": {
+      "spd": { "-1": 2, "0": 4, "1": 4 },
+      "dur": { "-1": 2, "0": 4, "1": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.3,
+    "tags": ["death", "destruction"],
+    "mods": []
+  },
+  "elemental": {
+    "name": "[PLACEHOLDER] Elemental",
+    "weight": 3,
+    "archetypes": { "elemental": 8, "mage": 2 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "10": 8, "9": 12, "8": 15, "7": 15, "6": 12, "5": 10, "4": 8, "3": 7, "2": 5, "1": 4, "0": 4 },
+    "offsets": {
+      "spd": { "-1": 3, "0": 4, "1": 3 },
+      "dur": { "-1": 2, "0": 4, "1": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["fire", "storm", "earth"],
+    "mods": []
+  },
   "dragon": {
     "name": "[PLACEHOLDER] Dragon",
     "weight": 3,
-    "archetypes": {
-      "elemental": 5,
-      "warrior": 3
-    },
-    "sizes": {
-      "huge": 1
-    },
-    "tierWeights": {
-      "9": 20,
-      "8": 25,
-      "7": 25,
-      "6": 15,
-      "5": 8,
-      "4": 4,
-      "3": 2,
-      "2": 1
-    },
+    "archetypes": { "elemental": 5, "warrior": 3 },
+    "sizes": { "huge": 1 },
+    "tierWeights": { "9": 20, "8": 25, "7": 25, "6": 15, "5": 8, "4": 4, "3": 2, "2": 1 },
     "offsets": {
       "spd": { "-2": 4, "-1": 4, "0": 2 },
       "dur": { "0": 3, "1": 5, "2": 2 }
@@ -82,6 +267,36 @@
     "traitWeights": {},
     "weaponChance": 0.1,
     "tags": ["draconic"],
+    "mods": []
+  },
+  "celestial": {
+    "name": "[PLACEHOLDER] Celestial",
+    "weight": 2,
+    "archetypes": { "mage": 7, "elemental": 3 },
+    "sizes": { "medium": 1 },
+    "tierWeights": { "8": 10, "7": 15, "6": 15, "5": 15, "4": 15, "3": 12, "2": 8, "1": 6, "0": 4 },
+    "offsets": {
+      "spd": { "-1": 2, "0": 4, "1": 4 },
+      "dur": { "-1": 2, "0": 4, "1": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["divine", "healing"],
+    "mods": []
+  },
+  "eldritch": {
+    "name": "[PLACEHOLDER] Eldritch",
+    "weight": 1,
+    "archetypes": { "mage": 8, "elemental": 2 },
+    "sizes": { "medium": 1, "huge": 1 },
+    "tierWeights": { "7": 5, "6": 8, "5": 10, "4": 12, "3": 15, "2": 15, "1": 15, "0": 20 },
+    "offsets": {
+      "spd": { "-1": 2, "0": 4, "1": 4 },
+      "dur": { "-1": 2, "0": 4, "1": 4 }
+    },
+    "traitWeights": {},
+    "weaponChance": 0.1,
+    "tags": ["cosmic"],
     "mods": []
   }
 }

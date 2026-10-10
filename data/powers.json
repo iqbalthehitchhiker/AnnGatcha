@@ -28,5 +28,76 @@
     "name": "[PLACEHOLDER] Void Manipulation",
     "weight": 5,
     "tags": ["cosmic", "destruction"]
-  }
+  },
+  
+  "healing_magic": {
+  "name": "Healing Magic",
+  "weight": 7,
+  "tags": ["magic", "healing"]
+},
+"regeneration": {
+  "name": "Regeneration",
+  "weight": 6,
+  "tags": ["physical", "healing"]
+},
+"necromancy": {
+  "name": "Necromancy",
+  "weight": 5,
+  "tags": ["magic", "death"]
+},
+"spirit_summoning": {
+  "name": "Spirit Summoning",
+  "weight": 5,
+  "tags": ["magic", "summoning"]
+},
+"beast_transformation": {
+  "name": "Beast Transformation",
+  "weight": 5,
+  "tags": ["physical", "transformation", "nature"]
+},
+"illusion_magic": {
+  "name": "Illusion Magic",
+  "weight": 7,
+  "tags": ["magic", "illusion"]
+},
+"time_dilation": {
+  "name": "Time Dilation",
+  "weight": 3,
+  "tags": ["cosmic", "time"]
+},
+"earth_shaping": {
+  "name": "Earth Shaping",
+  "weight": 7,
+  "tags": ["physical", "earth", "nature"]
+},
+"plant_manipulation": {
+  "name": "Plant Manipulation",
+  "weight": 6,
+  "tags": ["magic", "nature"]
+},
+"shadow_step": {
+  "name": "Shadow Step",
+  "weight": 5,
+  "tags": ["magic", "shadow"]
+},
+"flight": {
+  "name": "Flight",
+  "weight": 6,
+  "tags": ["cosmic", "flight"]
+},
+"gravity_manipulation": {
+  "name": "Gravity Manipulation",
+  "weight": 4,
+  "tags": ["cosmic", "destruction"]
+},
+"force_blast": {
+  "name": "Force Blast",
+  "weight": 8,
+  "tags": ["physical", "combat"]
+},
+"barrier_creation": {
+  "name": "Barrier Creation",
+  "weight": 6,
+  "tags": ["magic", "shield"]
+}
 }

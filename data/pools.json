@@ -1,62 +1,40 @@
 {
   "basic_opponents": [
-    {
-      "id": "thug",
-      "name": "[PLACEHOLDER] Thug",
-      "weight": 10,
-      "str": 10.0,
-      "spd": 10.0,
-      "dur": 10.0,
-      "tags": ["mortal"]
-    },
-    {
-      "id": "soldier",
-      "name": "[PLACEHOLDER] Soldier",
-      "weight": 8,
-      "str": 9.5,
-      "spd": 9.5,
-      "dur": 9.5,
-      "tags": ["mortal", "combat"]
-    }
+    { "id": "thug", "name": "[PLACEHOLDER] Thug", "weight": 10,
+      "str": 1.0, "spd": 1.0, "dur": 1.0, "tags": ["mortal"] },
+    { "id": "soldier", "name": "[PLACEHOLDER] Soldier", "weight": 8,
+      "str": 1.5, "spd": 1.5, "dur": 1.5, "tags": ["mortal", "combat"] },
+    { "id": "guard_dog", "name": "[PLACEHOLDER] Guard Dog", "weight": 8,
+      "str": 1.2, "spd": 2.5, "dur": 0.8, "tags": ["beast"] },
+    { "id": "bandit_captain", "name": "[PLACEHOLDER] Bandit Captain", "weight": 6,
+      "str": 2.0, "spd": 1.8, "dur": 2.0, "tags": ["mortal", "combat"] },
+    { "id": "stone_golem", "name": "[PLACEHOLDER] Stone Golem", "weight": 6,
+      "str": 3.0, "spd": 0.0, "dur": 4.0, "tags": ["construct"] },
+    { "id": "giant_boar", "name": "[PLACEHOLDER] Giant Boar", "weight": 7,
+      "str": 2.5, "spd": 0.5, "dur": 3.0, "tags": ["beast"] }
   ],
   "midtier_opponents": [
-    {
-      "id": "demon",
-      "name": "[PLACEHOLDER] Demon",
-      "weight": 10,
-      "str": 6.0,
-      "spd": 6.5,
-      "dur": 6.0,
-      "tags": ["fire", "destruction"]
-    },
-    {
-      "id": "elemental",
-      "name": "[PLACEHOLDER] Elemental",
-      "weight": 8,
-      "str": 5.5,
-      "spd": 5.0,
-      "dur": 6.5,
-      "tags": ["magic"]
-    }
+    { "id": "demon", "name": "[PLACEHOLDER] Demon", "weight": 10,
+      "str": 4.0, "spd": 3.5, "dur": 4.0, "tags": ["fire", "destruction"] },
+    { "id": "elemental", "name": "[PLACEHOLDER] Elemental", "weight": 8,
+      "str": 4.5, "spd": 5.0, "dur": 3.5, "tags": ["magic"] },
+    { "id": "wyvern", "name": "[PLACEHOLDER] Wyvern", "weight": 7,
+      "str": 5.5, "spd": 6.5, "dur": 5.0, "tags": ["beast", "flying"] },
+    { "id": "iron_knight", "name": "[PLACEHOLDER] Iron Knight", "weight": 6,
+      "str": 6.0, "spd": 3.0, "dur": 6.5, "tags": ["mortal", "combat", "physical_immunity"] },
+    { "id": "shade_assassin", "name": "[PLACEHOLDER] Shade Assassin", "weight": 6,
+      "str": 2.5, "spd": 7.0, "dur": 2.0, "tags": ["shadow"] },
+    { "id": "frost_giant", "name": "[PLACEHOLDER] Frost Giant", "weight": 6,
+      "str": 6.5, "spd": 2.0, "dur": 6.5, "tags": ["giant"] }
   ],
   "gods": [
-    {
-      "id": "sun_titan",
-      "name": "[PLACEHOLDER] Sun Titan",
-      "weight": 10,
-      "str": 2.5,
-      "spd": 2.0,
-      "dur": 3.0,
-      "tags": ["divine", "fire", "physical_immunity"]
-    },
-    {
-      "id": "storm_god",
-      "name": "[PLACEHOLDER] Storm God",
-      "weight": 8,
-      "str": 1.5,
-      "spd": 2.5,
-      "dur": 2.0,
-      "tags": ["divine", "storm"]
-    }
+    { "id": "sun_titan", "name": "[PLACEHOLDER] Sun Titan", "weight": 10,
+      "str": 7.5, "spd": 8.0, "dur": 8.5, "tags": ["divine", "fire", "physical_immunity"] },
+    { "id": "storm_god", "name": "[PLACEHOLDER] Storm God", "weight": 8,
+      "str": 8.5, "spd": 7.5, "dur": 8.0, "tags": ["divine", "storm"] },
+    { "id": "lesser_god", "name": "[PLACEHOLDER] Lesser God", "weight": 8,
+      "str": 6.5, "spd": 5.0, "dur": 7.0, "tags": ["divine"] },
+    { "id": "void_herald", "name": "[PLACEHOLDER] Void Herald", "weight": 4,
+      "str": 9.0, "spd": 8.5, "dur": 9.0, "tags": ["divine", "cosmic"] }
   ]
 }

@@ -98,12 +98,14 @@ function runSimulation(n, data) {
       one_sided: 0,
       both: 0
     },
+    harmClassesByBand: {},
     fightOutcomes: {
       win: 0,
       lose: 0,
       flee: 0,
       standoff: 0
     },
+    fightOutcomesByBand: {},
     insufficientOptions: []
   };
   
@@ -141,12 +143,9 @@ function runSimulation(n, data) {
         
         // Analyze scenario trace for harm class and outcomes
         for (const traceEntry of scenario.trace) {
-          if (traceEntry.stepType === 'contest') {
-            // Determine harm class from trace
-            // We need to infer this from the fight resolution
-            // For now, we'll categorize based on outcome patterns
-            // This is a simplification - real implementation would track canHarm
-            analyzeContestOutcome(traceEntry, stats);
+          if (traceEntry.stepType === 'contest' && traceEntry.mode === 'fight') {
+            // Track fight outcomes and harm classes from contest metadata
+            analyzeContestOutcome(traceEntry, stats, band, data);
           }
         }
       }
@@ -182,43 +181,71 @@ function runSimulation(n, data) {
 /**
  * Analyze a contest outcome to categorize harm class and outcome
  * Per FR-M1: Track harm class (neither/one-sided/both) and outcomes
+ * Reads authoritative harmClass from meta.harmClass and outcome from pickedId
  * 
  * @param {any} traceEntry - Contest trace entry
  * @param {any} stats - Stats object to update
+ * @param {string} band - Character band
+ * @param {any} data - Game data (for config)
  */
-function analyzeContestOutcome(traceEntry, stats) {
-  const outcome = traceEntry.outcome;
+function analyzeContestOutcome(traceEntry, stats, band, data) {
+  const outcome = traceEntry.pickedId;
   
   // Track fight outcome
-  if (outcome === 'win' || outcome === 'lose' || outcome === 'flee' || outcome === 'standoff') {
-    stats.fightOutcomes[outcome]++;
+  if (outcome && stats.fightOutcomes.hasOwnProperty(outcome)) {
+    stats.fightOutcomes[outcome] = (stats.fightOutcomes[outcome] || 0) + 1;
+    
+    // Track by band
+    if (!stats.fightOutcomesByBand[band]) {
+      stats.fightOutcomesByBand[band] = { win: 0, lose: 0, flee: 0, standoff: 0 };
+    }
+    stats.fightOutcomesByBand[band][outcome]++;
   }
   
-  // Infer harm class from outcome and probability
-  // This is approximate - ideal would be to track canHarm flags
-  // Standoff with flee outcome suggests neither can harm
-  // Flee outcome suggests one-sided
-  // Win/lose with high prob suggests one-sided or large advantage
-  // Win/lose with balanced prob suggests both can harm
-  
-  const prob = traceEntry.prob || 0.5;
-  
-  if (outcome === 'standoff') {
-    stats.harmClasses.neither++;
-  } else if (outcome === 'flee') {
-    // Flee can be neither (stalemate) or one-sided
-    // If prob is 1.0, it's deterministic flee (one-sided or stalemate)
-    if (prob >= 0.99) {
-      stats.harmClasses.one_sided++;
-    } else {
-      stats.harmClasses.neither++;
+  // Read harm class directly from metadata
+  const harmClass = traceEntry.meta?.harmClass;
+  if (harmClass && stats.harmClasses.hasOwnProperty(harmClass.replace('-', '_'))) {
+    stats.harmClasses[harmClass.replace('-', '_')]++;
+    
+    // Track by band
+    if (!stats.harmClassesByBand[band]) {
+      stats.harmClassesByBand[band] = { neither: 0, one_sided: 0, both: 0 };
     }
-  } else if (outcome === 'win' || outcome === 'lose') {
-    // High probability suggests one-sided (rout)
-    if (prob >= 0.99 || prob <= 0.01) {
-      stats.harmClasses.one_sided++;
-    } else {
-      stats.harmClasses.both++;
+    stats.harmClassesByBand[band][harmClass.replace('-', '_')]++;
+    
+    // Track one-sided-against-char with speedGap > 1.5
+    // Need to infer direction from strength vs durability with harmMargin
+    if (harmClass === 'one-sided') {
+      const charEffStr = traceEntry.charEffStr;
+      const oppEffStr = traceEntry.oppEffStr;
+      const charDur = traceEntry.charDur;
+      const oppDur = traceEntry.oppDur;
+      const charSpd = traceEntry.charSpd;
+      const oppSpd = traceEntry.oppSpd;
+      const harmMargin = data.config.harmMargin;
+      
+      // Approximate canHarm without tags (conservative estimate)
+      const charCanHarmOpp = charEffStr >= oppDur - harmMargin;
+      const oppCanHarmChar = oppEffStr >= charDur - harmMargin;
+      
+      // Character is harmed side if opp can harm but char cannot
+      if (oppCanHarmChar && !charCanHarmOpp && charSpd !== undefined && oppSpd !== undefined) {
+        const speedGap = charSpd - oppSpd;
+        if (!stats.oneSidedAgainstCharSpeedGap) {
+          stats.oneSidedAgainstCharSpeedGap = {};
+        }
+        if (!stats.oneSidedAgainstCharSpeedGap[band]) {
+          stats.oneSidedAgainstCharSpeedGap[band] = { total: 0, speedGapOver1_5: 0, outcomes: {} };
+        }
+        stats.oneSidedAgainstCharSpeedGap[band].total++;
+        if (speedGap > 1.5) {
+          stats.oneSidedAgainstCharSpeedGap[band].speedGapOver1_5++;
+          if (!stats.oneSidedAgainstCharSpeedGap[band].outcomes[outcome]) {
+            stats.oneSidedAgainstCharSpeedGap[band].outcomes[outcome] = 0;
+          }
+          stats.oneSidedAgainstCharSpeedGap[band].outcomes[outcome]++;
+        }
+      }
     }
   }
 }
@@ -325,6 +352,15 @@ function printStats(stats) {
     console.log(`  Neither can harm: ${stats.harmClasses.neither} (${neitherPct}%)`);
     console.log(`  One-sided: ${stats.harmClasses.one_sided} (${oneSidedPct}%)`);
     console.log(`  Both can harm: ${stats.harmClasses.both} (${bothPct}%)`);
+    
+    console.log('\n  By Band:');
+    for (const [band, hc] of Object.entries(stats.harmClassesByBand).sort()) {
+      const bandTotal = hc.neither + hc.one_sided + hc.both;
+      const nPct = ((hc.neither / bandTotal) * 100).toFixed(1);
+      const oPct = ((hc.one_sided / bandTotal) * 100).toFixed(1);
+      const bPct = ((hc.both / bandTotal) * 100).toFixed(1);
+      console.log(`    ${band}: Neither ${nPct}%, One-sided ${oPct}%, Both ${bPct}% (n=${bandTotal})`);
+    }
   }
   
   // M1a: Fight outcome breakdown (FR-M1)
@@ -340,6 +376,30 @@ function printStats(stats) {
     console.log(`  Lose: ${stats.fightOutcomes.lose} (${losePct}%)`);
     console.log(`  Flee: ${stats.fightOutcomes.flee} (${fleePct}%)`);
     console.log(`  Standoff: ${stats.fightOutcomes.standoff} (${standoffPct}%)`);
+    
+    console.log('\n  By Band:');
+    for (const [band, fo] of Object.entries(stats.fightOutcomesByBand).sort()) {
+      const bandTotal = fo.win + fo.lose + fo.flee + fo.standoff;
+      const wPct = ((fo.win / bandTotal) * 100).toFixed(1);
+      const lPct = ((fo.lose / bandTotal) * 100).toFixed(1);
+      const fPct = ((fo.flee / bandTotal) * 100).toFixed(1);
+      const sPct = ((fo.standoff / bandTotal) * 100).toFixed(1);
+      console.log(`    ${band}: Win ${wPct}%, Lose ${lPct}%, Flee ${fPct}%, Standoff ${sPct}% (n=${bandTotal})`);
+    }
+  }
+  
+  // One-sided against character speed gap analysis
+  if (stats.oneSidedAgainstCharSpeedGap) {
+    console.log('\nOne-Sided Against Character (speedGap > 1.5):');
+    for (const [band, data] of Object.entries(stats.oneSidedAgainstCharSpeedGap).sort()) {
+      console.log(`  ${band}: ${data.speedGapOver1_5} / ${data.total} fights (${((data.speedGapOver1_5 / data.total) * 100).toFixed(2)}%)`);
+      if (data.speedGapOver1_5 > 0) {
+        const outcomeStr = Object.entries(data.outcomes)
+          .map(([outcome, count]) => `${outcome}=${count}`)
+          .join(', ');
+        console.log(`    Outcomes: ${outcomeStr}`);
+      }
+    }
   }
   
   // M1a: Per-band options report (FR-M1, FR-X3)

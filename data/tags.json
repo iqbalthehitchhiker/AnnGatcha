@@ -33,9 +33,13 @@
     "name": "Divine"
   },
   "soul_severing": {
-    "name": "Soul-Severing",
-    "bypassesDurability": true,
-    "counters": ["physical_immunity"]
+  "name": "Soul-Severing",
+  "bypassesDurability": true,
+  "blockedBy": ["soul_immunity"]
+  },
+  "soul_immunity": {
+  "name": "Soul Immunity"
+  
   },
   "physical_immunity": {
     "name": "Physical Immunity"
@@ -59,5 +63,35 @@
   },
   "legendary": {
     "name": "Legendary"
-  }
+  },
+  "polearm": {
+    "name": "Polearm"
+  },
+  "concealable": {
+    "name": "Concealable"
+  },
+  "ranged": {
+    "name": "Ranged"
+  },
+  "blunt": {
+    "name": "Blunt"
+  },
+  "shield": {
+    "name": "Shield"
+  },
+  "healing": { 
+    "name": "Healing" },
+  "death": { "name": "Death" },
+"summoning": { "name": "Summoning" },
+"transformation": { "name": "Transformation" },
+"illusion": { "name": "Illusion" },
+"time": { "name": "Time" },
+"nature": { "name": "Nature" },
+"earth": { "name": "Earth" },
+"shadow": { "name": "Shadow" },
+"flight": { "name": "Flight" },
+"beast": { "name": "Beast" },
+"construct": { "name": "Construct" },
+"giant": { "name": "Giant" },
+"flying": { "name": "Flying" }
 }

@@ -46,6 +46,9 @@ export function validate(data) {
   // Validate unknown tags aren't referenced
   validateKnownTags(data, errors);
 
+  // Validate scenario weightMods structure and references
+  validateWeightMods(data, errors);
+
   // Validate race x archetype paths don't yield empty tables
   validateRaceArchetypePaths(data, errors);
 
@@ -231,6 +234,85 @@ function validateKnownTags(data, errors) {
     for (const blockedById of tag.blockedBy || []) {
       if (!knownTags.has(blockedById)) {
         errors.push(`Tag ${tagId} blockedBy references unknown tag ${blockedById}`);
+      }
+    }
+  }
+}
+
+/**
+ * Validate scenario weightMods structure and references
+ * Runtime schema (scenario.js:384-408): { "if": "type:value", "mult": number }
+ * Supported condition types: trait, tag, carried, race
+ */
+function validateWeightMods(data, errors) {
+  const knownTags = new Set(Object.keys(data.tags));
+  const knownTraits = new Set(Object.keys(data.traits));
+  const knownRaces = new Set(Object.keys(data.races));
+
+  for (const [scenarioId, scenario] of Object.entries(data.scenarios)) {
+    if (!scenario.weightMods) continue;
+
+    if (!Array.isArray(scenario.weightMods)) {
+      errors.push(`Scenario ${scenarioId} weightMods must be an array`);
+      continue;
+    }
+
+    for (let i = 0; i < scenario.weightMods.length; i++) {
+      const mod = scenario.weightMods[i];
+      const modPath = `Scenario ${scenarioId} weightMods[${i}]`;
+
+      // Validate mod is an object
+      if (typeof mod !== 'object' || mod === null || Array.isArray(mod)) {
+        errors.push(`${modPath} must be an object`);
+        continue;
+      }
+
+      // Validate 'if' field exists and is a string
+      if (!mod.if) {
+        errors.push(`${modPath} missing required field 'if'`);
+      } else if (typeof mod.if !== 'string') {
+        errors.push(`${modPath} field 'if' must be a string`);
+      } else {
+        // Validate condition format: "type:value"
+        const parts = mod.if.split(':');
+        if (parts.length !== 2) {
+          errors.push(`${modPath} condition '${mod.if}' must be in format 'type:value'`);
+        } else {
+          const [condType, condValue] = parts;
+
+          // Validate condition type is supported
+          const validTypes = ['trait', 'tag', 'carried', 'race'];
+          if (!validTypes.includes(condType)) {
+            errors.push(`${modPath} unknown condition type '${condType}' (valid: ${validTypes.join(', ')})`);
+          }
+
+          // Validate condition value is non-empty
+          if (!condValue || condValue.length === 0) {
+            errors.push(`${modPath} condition value cannot be empty`);
+          } else {
+            // Validate referenced ID exists
+            if (condType === 'trait' && !knownTraits.has(condValue)) {
+              errors.push(`${modPath} references unknown trait '${condValue}'`);
+            } else if (condType === 'tag' && !knownTags.has(condValue)) {
+              errors.push(`${modPath} references unknown tag '${condValue}'`);
+            } else if (condType === 'carried' && !knownTags.has(condValue)) {
+              errors.push(`${modPath} references unknown carried tag '${condValue}'`);
+            } else if (condType === 'race' && !knownRaces.has(condValue)) {
+              errors.push(`${modPath} references unknown race '${condValue}'`);
+            }
+          }
+        }
+      }
+
+      // Validate 'mult' field exists and is a valid number
+      if (!('mult' in mod)) {
+        errors.push(`${modPath} missing required field 'mult'`);
+      } else if (typeof mod.mult !== 'number' || mod.mult === null) {
+        errors.push(`${modPath} field 'mult' must be a number`);
+      } else if (!isFinite(mod.mult)) {
+        errors.push(`${modPath} field 'mult' must be finite`);
+      } else if (mod.mult <= 0) {
+        errors.push(`${modPath} field 'mult' must be positive (got ${mod.mult})`);
       }
     }
   }
@@ -722,16 +804,15 @@ function validateTagUsage(data, warnings) {
 
   // Collect tags from scenario weightMods
   for (const scenario of Object.values(data.scenarios)) {
-    if (scenario.weightMods) {
+    if (scenario.weightMods && Array.isArray(scenario.weightMods)) {
       for (const mod of scenario.weightMods) {
-        if (mod.ifTags) {
-          for (const tag of mod.ifTags) {
-            usedTags.add(tag);
-          }
-        }
-        if (mod.ifNotTags) {
-          for (const tag of mod.ifNotTags) {
-            usedTags.add(tag);
+        if (mod && typeof mod.if === 'string') {
+          const parts = mod.if.split(':');
+          if (parts.length === 2) {
+            const [condType, condValue] = parts;
+            if ((condType === 'tag' || condType === 'carried') && condValue) {
+              usedTags.add(condValue);
+            }
           }
         }
       }

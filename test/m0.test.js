@@ -82,13 +82,15 @@ describe('M0 Acceptance Tests', () => {
       const baselineNonRace = baseline.trace.filter(e => !e.stageId.startsWith('race'));
       const withRedoNonRace = withRedo.trace.filter(e => !e.stageId.startsWith('race'));
       
-      // Compare draws for each non-race stage
-      for (let i = 0; i < baselineNonRace.length; i++) {
-        const baseEntry = baselineNonRace[i];
-        const redoEntry = withRedoNonRace[i];
-        
-        expect(redoEntry.stageId).toBe(baseEntry.stageId);
-        expect(redoEntry.draw).toBe(baseEntry.draw);
+      // Build maps by stageId to handle optional stages (weapon sub-stages)
+      const baselineMap = new Map(baselineNonRace.map(e => [e.stageId, e.draw]));
+      const redoMap = new Map(withRedoNonRace.map(e => [e.stageId, e.draw]));
+      
+      // Compare draws for stages present in both traces
+      for (const [stageId, baselineDraw] of baselineMap) {
+        if (redoMap.has(stageId)) {
+          expect(redoMap.get(stageId)).toBe(baselineDraw);
+        }
       }
     });
     
@@ -340,6 +342,208 @@ describe('M0 Acceptance Tests', () => {
       
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('unreachable step'))).toBe(true);
+    });
+
+    // weightMods validation tests
+    it('should pass for valid weightMods with trait condition', () => {
+      const data = loadData();
+      // Add a scenario with valid weightMods
+      data.scenarios.test_scenario = {
+        bands: ['solo'],
+        weight: 1,
+        start: 'start',
+        steps: {
+          start: { type: 'end' }
+        },
+        weightMods: [
+          { if: 'trait:ambitious', mult: 2.0 }
+        ]
+      };
+      
+      const result = validate(data);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass for valid weightMods with tag condition', () => {
+      const data = loadData();
+      data.scenarios.test_scenario = {
+        bands: ['solo'],
+        weight: 1,
+        start: 'start',
+        steps: {
+          start: { type: 'end' }
+        },
+        weightMods: [
+          { if: 'tag:fire', mult: 1.5 }
+        ]
+      };
+      
+      const result = validate(data);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass for valid weightMods with carried condition', () => {
+      const data = loadData();
+      data.scenarios.test_scenario = {
+        bands: ['solo'],
+        weight: 1,
+        start: 'start',
+        steps: {
+          start: { type: 'end' }
+        },
+        weightMods: [
+          { if: 'carried:rival', mult: 0.5 }
+        ]
+      };
+      
+      const result = validate(data);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should pass for valid weightMods with race condition', () => {
+      const data = loadData();
+      data.scenarios.test_scenario = {
+        bands: ['solo'],
+        weight: 1,
+        start: 'start',
+        steps: {
+          start: { type: 'end' }
+        },
+        weightMods: [
+          { if: 'race:human', mult: 1.2 }
+        ]
+      };
+      
+      const result = validate(data);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should fail for weightMods with missing if field', () => {
+      const data = loadFixture('invalid-weightmod-missing-if');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('missing required field') && e.includes('if'))).toBe(true);
+    });
+
+    it('should fail for weightMods with missing mult field', () => {
+      const data = loadFixture('invalid-weightmod-missing-mult');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('missing required field') && e.includes('mult'))).toBe(true);
+    });
+
+    it('should fail for weightMods with non-string if field', () => {
+      const data = loadFixture('invalid-weightmod-if-not-string');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes("field 'if' must be a string"))).toBe(true);
+    });
+
+    it('should fail for weightMods with malformed condition', () => {
+      const data = loadFixture('invalid-weightmod-malformed-condition');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('must be in format') && e.includes('type:value'))).toBe(true);
+    });
+
+    it('should fail for weightMods with unknown condition type', () => {
+      const data = loadFixture('invalid-weightmod-unknown-type');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('unknown condition type'))).toBe(true);
+    });
+
+    it('should fail for weightMods with empty condition value', () => {
+      const data = loadFixture('invalid-weightmod-empty-value');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('condition value cannot be empty'))).toBe(true);
+    });
+
+    it('should fail for weightMods with unknown trait', () => {
+      const data = loadFixture('invalid-weightmod-unknown-trait');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('unknown trait'))).toBe(true);
+    });
+
+    it('should fail for weightMods with unknown tag', () => {
+      const data = loadFixture('invalid-weightmod-unknown-tag');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('unknown tag'))).toBe(true);
+    });
+
+    it('should fail for weightMods with unknown carried tag', () => {
+      const data = loadFixture('invalid-weightmod-unknown-carried');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('unknown carried tag'))).toBe(true);
+    });
+
+    it('should fail for weightMods with unknown race', () => {
+      const data = loadFixture('invalid-weightmod-unknown-race');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('unknown race'))).toBe(true);
+    });
+
+    it('should fail for weightMods with non-number mult', () => {
+      const data = loadFixture('invalid-weightmod-mult-not-number');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes("field 'mult' must be a number"))).toBe(true);
+    });
+
+    it('should fail for weightMods with null mult', () => {
+      const data = loadFixture('invalid-weightmod-mult-not-finite');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes("field 'mult' must be a number"))).toBe(true);
+    });
+
+    it('should fail for weightMods with zero mult', () => {
+      const data = loadFixture('invalid-weightmod-mult-zero');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('must be positive') && e.includes('0'))).toBe(true);
+    });
+
+    it('should fail for weightMods with negative mult', () => {
+      const data = loadFixture('invalid-weightmod-mult-negative');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('must be positive'))).toBe(true);
+    });
+
+    it('should fail for weightMods that is not an object', () => {
+      const data = loadFixture('invalid-weightmod-not-object');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('must be an object'))).toBe(true);
+    });
+
+    it('should fail for weightMods that is not an array', () => {
+      const data = loadFixture('invalid-weightmod-not-array');
+      const result = validate(data);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('must be an array'))).toBe(true);
     });
   });
   

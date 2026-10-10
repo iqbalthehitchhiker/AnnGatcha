@@ -3,5 +3,30 @@
     "name": "Brave",
     "weight": 1,
     "scenarioMods": []
+  },
+  "ambitious": {
+    "name": "Ambitious",
+    "weight": 1,
+    "scenarioMods": []
+  },
+  "cautious": {
+    "name": "Cautious",
+    "weight": 1,
+    "scenarioMods": []
+  },
+  "bloodthirsty": {
+    "name": "Bloodthirsty",
+    "weight": 1,
+    "scenarioMods": []
+  },
+  "cunning": {
+    "name": "Cunning",
+    "weight": 1,
+    "scenarioMods": []
+  },
+  "honorable": {
+    "name": "Honorable",
+    "weight": 1,
+    "scenarioMods": []
   }
 }

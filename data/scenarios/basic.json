@@ -8,7 +8,10 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 0.3 },
+      { "if": "trait:bloodthirsty", "mult": 0.2 }
+    ],
     "start": "idle",
     "steps": {
       "idle": {
@@ -27,7 +30,13 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.5 },
+      { "if": "trait:cautious", "mult": 0.6 },
+      { "if": "trait:bloodthirsty", "mult": 2.0 },
+      { "if": "trait:cunning", "mult": 0.7 },
+      { "if": "trait:honorable", "mult": 1.3 }
+    ],
     "start": "pick",
     "steps": {
       "pick": {
@@ -78,7 +87,12 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:cautious", "mult": 1.2 },
+      { "if": "trait:bloodthirsty", "mult": 1.1 },
+      { "if": "trait:cunning", "mult": 1.4 },
+      { "if": "trait:honorable", "mult": 0.3 }
+    ],
     "start": "check",
     "steps": {
       "check": {
@@ -112,7 +126,13 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.5 },
+      { "if": "trait:cautious", "mult": 0.6 },
+      { "if": "trait:bloodthirsty", "mult": 2.0 },
+      { "if": "trait:cunning", "mult": 0.7 },
+      { "if": "trait:honorable", "mult": 1.3 }
+    ],
     "start": "pick",
     "steps": {
       "pick": {
@@ -163,7 +183,12 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.2 },
+      { "if": "trait:cautious", "mult": 1.3 },
+      { "if": "trait:bloodthirsty", "mult": 0.7 },
+      { "if": "trait:cunning", "mult": 1.5 }
+    ],
     "start": "check",
     "steps": {
       "check": {
@@ -197,7 +222,13 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.6 },
+      { "if": "trait:cautious", "mult": 0.5 },
+      { "if": "trait:bloodthirsty", "mult": 2.0 },
+      { "if": "trait:cunning", "mult": 0.7 },
+      { "if": "trait:honorable", "mult": 1.4 }
+    ],
     "start": "pick",
     "steps": {
       "pick": {
@@ -248,7 +279,12 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:cautious", "mult": 1.2 },
+      { "if": "trait:bloodthirsty", "mult": 1.2 },
+      { "if": "trait:cunning", "mult": 1.5 },
+      { "if": "trait:honorable", "mult": 0.3 }
+    ],
     "start": "check",
     "steps": {
       "check": {
@@ -282,7 +318,13 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 2.0 },
+      { "if": "trait:cautious", "mult": 0.4 },
+      { "if": "trait:bloodthirsty", "mult": 2.0 },
+      { "if": "trait:cunning", "mult": 0.6 },
+      { "if": "trait:honorable", "mult": 1.5 }
+    ],
     "start": "pick",
     "steps": {
       "pick": {
@@ -333,7 +375,12 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.3 },
+      { "if": "trait:cautious", "mult": 1.4 },
+      { "if": "trait:bloodthirsty", "mult": 0.7 },
+      { "if": "trait:cunning", "mult": 1.6 }
+    ],
     "start": "check",
     "steps": {
       "check": {
@@ -367,7 +414,13 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 2.0 },
+      { "if": "trait:cautious", "mult": 0.3 },
+      { "if": "trait:bloodthirsty", "mult": 2.0 },
+      { "if": "trait:cunning", "mult": 0.6 },
+      { "if": "trait:honorable", "mult": 1.5 }
+    ],
     "start": "pick",
     "steps": {
       "pick": {
@@ -418,7 +471,10 @@
       "notTags": [],
       "carried": []
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.5 },
+      { "if": "trait:cautious", "mult": 0.8 }
+    ],
     "start": "check",
     "steps": {
       "check": {
@@ -452,7 +508,11 @@
       "notTags": [],
       "carried": ["rival"]
     },
-    "weightMods": [],
+    "weightMods": [
+      { "if": "trait:ambitious", "mult": 1.4 },
+      { "if": "trait:bloodthirsty", "mult": 1.6 },
+      { "if": "trait:honorable", "mult": 1.3 }
+    ],
     "start": "fight",
     "steps": {
       "fight": {
