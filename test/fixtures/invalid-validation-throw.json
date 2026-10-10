@@ -10,18 +10,7 @@
       "10-9": [10, 9]
     }
   },
-  "races": {
-    "human": {
-      "weight": 1,
-      "tags": [],
-      "archetypes": {
-        "warrior": 1
-      },
-      "sizes": null,
-      "tierWeights": null,
-      "weaponChance": 0
-    }
-  },
+  "races": null,
   "archetypes": {
     "warrior": {
       "poolTags": []

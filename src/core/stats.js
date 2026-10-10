@@ -122,7 +122,7 @@ export function getEffectiveStats(str, spd, dur, carriedTags) {
 /**
  * Check if A can harm B (FR-S4)
  * A can harm B iff:
- * (a) A has a bypass tag whose counters don't intersect B's tags, OR
+ * (a) A has a bypass tag whose blockedBy don't intersect B's tags, OR
  * (b) effStrA >= durB - harmMargin
  * 
  * @param {number} effStrA - A's effective strength
@@ -133,14 +133,14 @@ export function getEffectiveStats(str, spd, dur, carriedTags) {
  * @returns {boolean} True if A can harm B
  */
 export function canHarm(effStrA, durB, tagsA, tagsB, data) {
-  // Check bypass tags (a)
+  // Check bypass tags (a): FR-S4(a)
   for (const tagId of tagsA) {
     const tag = data.tags[tagId];
     if (tag && tag.bypassesDurability) {
-      // Check if counters intersect with B's tags
-      const counters = tag.counters || [];
-      const hasCounter = counters.some(c => tagsB.includes(c));
-      if (!hasCounter) {
+      // Check if B has any blockedBy tag
+      const blockedBy = tag.blockedBy || [];
+      const isBlocked = blockedBy.some(b => tagsB.includes(b));
+      if (!isBlocked) {
         return true; // Bypass works
       }
     }

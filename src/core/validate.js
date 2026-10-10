@@ -67,6 +67,9 @@ export function validate(data) {
   // Validate stats are used
   validateStatsUsed(data, errors);
 
+  // Warn about unused tags
+  validateTagUsage(data, warnings);
+
   // Validate percentiles.json if present
   validatePercentiles(data, warnings);
 
@@ -219,6 +222,15 @@ function validateKnownTags(data, errors) {
         if (!knownTags.has(tag)) {
           errors.push(`Pool ${poolId} entry ${entry.id} references unknown tag ${tag}`);
         }
+      }
+    }
+  }
+
+  // Tag blockedBy references
+  for (const [tagId, tag] of Object.entries(data.tags)) {
+    for (const blockedById of tag.blockedBy || []) {
+      if (!knownTags.has(blockedById)) {
+        errors.push(`Tag ${tagId} blockedBy references unknown tag ${blockedById}`);
       }
     }
   }
@@ -656,4 +668,87 @@ function scenarioTestsDurability(scenario) {
     }
   }
   return false;
+}
+
+/**
+ * Warn about tags never referenced (FR-X8)
+ */
+function validateTagUsage(data, warnings) {
+  const knownTags = new Set(Object.keys(data.tags));
+  const usedTags = new Set();
+
+  // Collect tags from powers
+  for (const power of Object.values(data.powers)) {
+    for (const tag of power.tags || []) {
+      usedTags.add(tag);
+    }
+  }
+
+  // Collect tags from weapons
+  for (const type of Object.values(data.weapons.types || {})) {
+    for (const tag of type.tags || []) {
+      usedTags.add(tag);
+    }
+  }
+  for (const ench of Object.values(data.weapons.enchantments || {})) {
+    for (const tag of ench.tags || []) {
+      usedTags.add(tag);
+    }
+  }
+
+  // Collect tags from pools
+  for (const pool of Object.values(data.pools)) {
+    for (const entry of pool) {
+      for (const tag of entry.tags || []) {
+        usedTags.add(tag);
+      }
+    }
+  }
+
+  // Collect tags from scenario requires
+  for (const scenario of Object.values(data.scenarios)) {
+    if (scenario.requires) {
+      for (const tag of scenario.requires.carried || []) {
+        usedTags.add(tag);
+      }
+      for (const tag of scenario.requires.tags || []) {
+        usedTags.add(tag);
+      }
+      for (const tag of scenario.requires.notTags || []) {
+        usedTags.add(tag);
+      }
+    }
+  }
+
+  // Collect tags from scenario weightMods
+  for (const scenario of Object.values(data.scenarios)) {
+    if (scenario.weightMods) {
+      for (const mod of scenario.weightMods) {
+        if (mod.ifTags) {
+          for (const tag of mod.ifTags) {
+            usedTags.add(tag);
+          }
+        }
+        if (mod.ifNotTags) {
+          for (const tag of mod.ifNotTags) {
+            usedTags.add(tag);
+          }
+        }
+      }
+    }
+  }
+
+  // Collect tags from blockedBy
+  for (const tag of Object.values(data.tags)) {
+    for (const blockedById of tag.blockedBy || []) {
+      usedTags.add(blockedById);
+    }
+  }
+
+  // Warn about unused tags
+  for (const tagId of knownTags) {
+    if (!usedTags.has(tagId)) {
+      warnings.push(`Tag ${tagId} is never referenced by requires, weightMods, conditions, or blockedBy`);
+    }
+  }
 }
