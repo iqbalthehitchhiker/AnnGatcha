@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel of Fortune RPG</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="loading" aria-live="polite">Loading...</div>
+    <div id="error" class="error hidden" role="alert" aria-live="assertive"></div>
+    <div id="main" class="hidden">
+      <div id="wheel-container">
+        <div id="stage-label"></div>
+        <div id="wheel-status" aria-live="polite"></div>
+        <div id="wheel"></div>
+      </div>
+      
+      <div id="controls">
+        <button id="spin-button">Start Run</button>
+        <div class="control-group">
+          <button id="skip-button" class="hidden">Skip to Result</button>
+          <button id="skip-all-button" class="hidden">Skip All</button>
+        </div>
+      </div>
+      
+      <div id="progress" class="hidden">
+        <div class="progress-text">Pick <span id="progress-current">0</span> of <span id="progress-total">0</span></div>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div id="progress-summary"></div>
+      </div>
+      
+      <details id="settings">
+        <summary>Settings</summary>
+        <div class="settings-content">
+          <div class="setting-group">
+            <label for="seed-input">Seed (optional):</label>
+            <input type="text" id="seed-input" placeholder="Leave blank for random">
+            <div id="seed-display"></div>
+          </div>
+          <div class="setting-group">
+            <label><input type="checkbox" id="reduced-motion"> Reduced motion</label>
+          </div>
+          <div class="setting-group">
+            <label><input type="checkbox" id="mute-audio"> Mute audio</label>
+          </div>
+        </div>
+      </details>
+      
+      <div id="results" class="hidden">
+        <h2>Your Character</h2>
+        <div id="character-info"></div>
+        
+        <h2>Scenarios</h2>
+        <div id="scenarios-info"></div>
+        
+        <div id="rarity-info"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="src/ui/app.js"></script>
+</body>
+</html>

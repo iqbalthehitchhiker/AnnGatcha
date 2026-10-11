@@ -1,8 +1,26 @@
 {
+  "tiny": {
+    "name": "Tiny"
+  },
+  "small": {
+    "name": "Small"
+  },
   "medium": {
-    "name": "[PLACEHOLDER] Medium"
+    "name": "Medium"
+  },
+  "large": {
+    "name": "Large"
   },
   "huge": {
-    "name": "[PLACEHOLDER] Huge"
+    "name": "Huge"
+  },
+  "gargantuan": {
+    "name": "Gargantuan"
+  },
+  "colossal": {
+    "name": "Colossal"
+  },
+  "titanic": {
+    "name": "Titanic"
   }
 }
