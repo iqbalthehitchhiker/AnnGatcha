@@ -1,26 +1,49 @@
 {
-  "warrior": {
-    "name": "[PLACEHOLDER] Warrior",
-    "poolTags": ["physical", "combat"],
-    "tagWeights": {
-      "physical": 2
-    },
-    "mods": []
+  "warrior": { 
+    "name": "[PLACEHOLDER] Warrior", 
+    "poolTags": ["physical", "combat"], 
+    "tagWeights": { "physical": 2 }, 
+    "mods": [] 
   },
-  "mage": {
-    "name": "[PLACEHOLDER] Mage",
-    "poolTags": ["magic", "cosmic"],
-    "tagWeights": {
-      "magic": 2
-    },
-    "mods": []
+  "mage": { 
+    "name": "[PLACEHOLDER] Mage", 
+    "poolTags": ["magic", "cosmic"], 
+    "tagWeights": { "magic": 2 }, 
+    "mods": [] 
   },
-  "elemental": {
-    "name": "[PLACEHOLDER] Elemental",
-    "poolTags": ["fire", "storm", "destruction"],
-    "tagWeights": {
-      "fire": 2
-    },
-    "mods": []
+  "elemental": { 
+    "name": "[PLACEHOLDER] Elemental", 
+    "poolTags": ["fire", "storm", "destruction"], 
+    "tagWeights": { "fire": 2 }, 
+    "mods": [] 
+  },
+  "druid": { 
+    "name": "Druid", 
+    "poolTags": ["nature", "transformation", "earth", "healing"], 
+    "tagWeights": { "nature": 3, "transformation": 2 }, 
+    "mods": [] 
+  },
+  "rogue": { 
+    "name": "Rogue", 
+    "poolTags": ["shadow", "illusion", "flight", "combat"], 
+    "tagWeights": { "shadow": 2, "illusion": 2 }, 
+    "mods": [] 
+  },
+  "occultist": { 
+    "name": "Occultist", 
+    "poolTags": ["death", "summoning", "shadow", "illusion", "cosmic"], 
+    "tagWeights": { "death": 3, "summoning": 3, "shadow": 2, "illusion": 2 }, 
+    "mods": [] 
+  },
+  "guardian": { 
+    "name": "Guardian", 
+    "poolTags": ["shield", "healing", "combat", "physical"], 
+    "tagWeights": { "shield": 3, "healing": 2 }, 
+    "mods": [] 
+  },
+  "cosmic": { 
+    "name": "Cosmic", "poolTags": ["cosmic", "time", "destruction", "flight"], 
+    "tagWeights": { "cosmic": 2, "time": 2 }, 
+    "mods": [] 
   }
 }

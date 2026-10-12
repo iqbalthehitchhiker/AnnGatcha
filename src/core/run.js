@@ -2,7 +2,7 @@
 
 import { createRngFromRedoMap } from './rng.js';
 import { pick, computeTraceLogProb, createTable } from './picker.js';
-import { collectMods, applyTierMods, applyOffsetMods } from './mods.js';
+import { collectMods, applyTierMods, applyOffsetMods, applyTiltMods } from './mods.js';
 import { executeChain } from './chain.js';
 
 /**
@@ -264,12 +264,17 @@ function executePowersStage(data, character, rng, trace) {
     }
   }
   
+  // Build power entries with extra fields for tilt
+  const race = data.races[character.race];
+  const mods = collectMods(race, archetype);
+  
   // Pick powers without replacement
   character.powers = [];
   for (let i = 0; i < character.powerCount; i++) {
     const entries = Object.entries(powerWeights).map(([id, weight]) => ({
       id,
-      weight
+      weight,
+      rank: data.powers[id].rank
     }));
     
     // Stop if pool is exhausted
@@ -277,7 +282,8 @@ function executePowersStage(data, character, rng, trace) {
       break;
     }
     
-    const result = pick(entries, rng, `powers:${i}`);
+    const tilted = applyTiltMods(entries, 'powers', mods);
+    const result = pick(tilted, rng, `powers:${i}`);
     character.powers.push(result.pickedId);
     
     // Remove picked power from pool for next iteration
@@ -366,7 +372,16 @@ function executeSpeedOffsetStage(data, character, rng, trace) {
   offsets = applyOffsetMods(offsets, mods, 'spd');
   
   const entries = createTable(offsets);
-  const result = pick(entries, rng, 'speedOffset');
+  
+  // Add labels: "Speed: Tier N" where N is from resulting tier
+  const entriesWithLabels = entries.map(e => {
+    const offset = parseFloat(e.id);
+    const resultingLevel = Math.max(0, Math.min(character.strength + offset, 10.999));
+    const tier = 10 - Math.floor(resultingLevel);
+    return { ...e, label: `Speed: Tier ${tier}` };
+  });
+  
+  const result = pick(entriesWithLabels, rng, 'speedOffset');
   const offset = parseFloat(result.pickedId);
   
   // Speed = strength + offset, clamped to [0, 11)
@@ -395,7 +410,16 @@ function executeDurOffsetStage(data, character, rng, trace) {
   offsets = applyOffsetMods(offsets, mods, 'dur');
   
   const entries = createTable(offsets);
-  const result = pick(entries, rng, 'durOffset');
+  
+  // Add labels: "Durability: Tier N" where N is from resulting tier
+  const entriesWithLabels = entries.map(e => {
+    const offset = parseFloat(e.id);
+    const resultingLevel = Math.max(0, Math.min(character.strength + offset, 10.999));
+    const tier = 10 - Math.floor(resultingLevel);
+    return { ...e, label: `Durability: Tier ${tier}` };
+  });
+  
+  const result = pick(entriesWithLabels, rng, 'durOffset');
   const offset = parseFloat(result.pickedId);
   
   // Durability = strength + offset, clamped to [0, 11)
@@ -415,13 +439,23 @@ function executeDurOffsetStage(data, character, rng, trace) {
  */
 function executeWeaponStage(data, character, rng, trace) {
   const race = data.races[character.race];
+  const archetype = data.archetypes[character.archetype];
   const weaponChance = race.weaponChance || 0;
+  const mods = collectMods(race, archetype);
   
   // Stage 1: Yes/no
-  const hasWeaponEntries = [
-    { id: 'yes', weight: weaponChance },
-    { id: 'no', weight: 1 - weaponChance }
-  ];
+  const hasWeaponEntries = [];
+  if (weaponChance > 0) {
+    hasWeaponEntries.push({ id: 'yes', weight: weaponChance });
+  }
+  const noChance = 1 - weaponChance;
+  if (noChance > 0) {
+    hasWeaponEntries.push({ id: 'no', weight: noChance });
+  }
+  if (hasWeaponEntries.length === 0) {
+    character.weapon = null;
+    return;
+  }
   const hasWeaponResult = pick(hasWeaponEntries, rng, 'weapon');
   
   trace.push({
@@ -439,9 +473,10 @@ function executeWeaponStage(data, character, rng, trace) {
   // Stage 2: Type
   const typeEntries = Object.entries(data.weapons.types).map(([id, type]) => ({
     id,
-    weight: type.weight
+    weight: type.weight,
+    level: type.level
   }));
-  const typeResult = pick(typeEntries, rng, 'weapon:type');
+  const typeResult = pick(applyTiltMods(typeEntries, 'weapon:type', mods), rng, 'weapon:type');
   
   trace.push({
     stageId: 'weapon:type',
@@ -453,9 +488,10 @@ function executeWeaponStage(data, character, rng, trace) {
   // Stage 3: Enchantment
   const enchEntries = Object.entries(data.weapons.enchantments).map(([id, ench]) => ({
     id,
-    weight: ench.weight
+    weight: ench.weight,
+    levelBonus: ench.levelBonus
   }));
-  const enchResult = pick(enchEntries, rng, 'weapon:enchantment');
+  const enchResult = pick(applyTiltMods(enchEntries, 'weapon:enchantment', mods), rng, 'weapon:enchantment');
   
   trace.push({
     stageId: 'weapon:enchantment',

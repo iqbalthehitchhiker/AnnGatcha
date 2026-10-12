@@ -65,7 +65,9 @@ export function renderWheelSVG(table, pickedId, data, rotationAngle = 0, size = 
     // Only show label if wedge is large enough (>10°)
     if (angleDeg < 10) return;
     
-    const name = getName(wedge.id, data);
+    // Find entry in table to get label if present
+    const entry = table.find(e => e.id === wedge.id);
+    const name = getLabel(wedge.id, entry, data);
     
     // Place anchor at inner edge (near hub), text extends outward
     const anchorRadius = hubRadius + 5; // 5px clearance from hub
@@ -124,6 +126,18 @@ function getName(id, data) {
   if (data.traits?.[id]) return data.traits[id].name || id;
   
   return id;
+}
+
+/**
+ * Get label for display (for speed/durability stages, shows label if present)
+ * @param {string} id
+ * @param {any} entry - Table entry with optional label field
+ * @param {any} data
+ * @returns {string}
+ */
+function getLabel(id, entry, data) {
+  if (entry && entry.label) return entry.label;
+  return getName(id, data);
 }
 
 function darkenColor(hex, factor) {

@@ -42,5 +42,14 @@
   "checkSteepness": 2.0,
   "speedWeight": 0.25,
   "minOdds": 0.01,
-  "speedGapFlee": 1.5
+  "speedGapFlee": 1.5,
+  "offsetLabels": {
+    "spd": { "-2": "Sluggish", "-1": "Slow", "0": "Average", "1": "Swift", "2": "Blinding" },
+    "dur": { "-2": "Glass", "-1": "Fragile", "0": "Average", "1": "Tough", "2": "Ironclad" }
+  },
+  "tierLabels": {
+    "10": "Mortal", "9": "City", "8": "Nuke", "7": "Mountain", "6": "Continent",
+    "5": "Stellar", "4": "Solar", "3": "Galactic", "2": "Multiverse",
+    "1": "Hyperverse", "0": "Absolute"
+  }
 }

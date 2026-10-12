@@ -30,7 +30,15 @@
  */
 
 /**
- * @typedef {ShiftTierMod | ShiftOffsetMod | ShiftPowerCountMod | ScaleWeightMod} Mod
+ * @typedef {Object} TiltMod
+ * @property {'tilt'} op
+ * @property {string} stage
+ * @property {string} field
+ * @property {number} by
+ */
+
+/**
+ * @typedef {ShiftTierMod | ShiftOffsetMod | ShiftPowerCountMod | ScaleWeightMod | TiltMod} Mod
  */
 
 /**
@@ -164,8 +172,19 @@ export function applyMods(baseData, mods, _characterState) {
 export function collectMods(race, archetype) {
   const mods = [];
   
-  if (race.mods) {
-    mods.push(...race.mods);
+  if (race) {
+    if (race.mods) {
+      mods.push(...race.mods);
+    }
+    const weaponTilt = race.weaponTilt;
+    if (weaponTilt !== undefined && weaponTilt !== null && weaponTilt !== 0) {
+      mods.push({ op: 'tilt', stage: 'weapon:type', field: 'level', by: weaponTilt });
+      mods.push({ op: 'tilt', stage: 'weapon:enchantment', field: 'levelBonus', by: weaponTilt });
+    }
+    const powerTilt = race.powerTilt;
+    if (powerTilt !== undefined && powerTilt !== null && powerTilt !== 0) {
+      mods.push({ op: 'tilt', stage: 'powers', field: 'rank', by: powerTilt });
+    }
   }
   
   if (archetype && archetype.mods) {
@@ -176,7 +195,30 @@ export function collectMods(race, archetype) {
 }
 
 /**
- * Apply mods to a stage table
+ * Apply tilt to a table of entries
+ * multiplies each entry's weight by exp(by * (entry[field] - 1))
+ * Missing field defaults to 1 (identity)
+ * @param {Array<{id: string, weight: number, [key: string]: any}>} entries - Array of entries
+ * @param {string} field - Field name to tilt by
+ * @param {number} by - Tilt factor
+ * @returns {Array<{id: string, weight: number, [key: string]: any}>} New array of entries with modified weights
+ */
+export function applyTilt(entries, field, by) {
+  if (by === 0) {
+    return entries.map(e => ({ ...e }));
+  }
+  const result = [];
+  for (const e of entries) {
+    const val = e[field];
+    const target = (typeof val === 'number' && isFinite(val)) ? val : 1;
+    const newWeight = e.weight * Math.exp(by * (target - 1));
+    result.push({ ...e, weight: newWeight });
+  }
+  return result;
+}
+
+/**
+ * Apply mods to a stage table (object form)
  * This is the main entry point for stage resolution
  * 
  * @param {string} stage - Stage name
@@ -191,6 +233,14 @@ export function applyModsToTable(stage, table, mods, _characterState) {
   for (const mod of mods) {
     if (mod.op === 'scaleWeight' && mod.stage === stage) {
       result = scaleWeights(result, mod.by, mod.entry, mod.tag);
+    } else if (mod.op === 'tilt' && mod.stage === stage) {
+      const entries = Object.entries(result).map(([id, entry]) => ({ id, ...(entry || {}) }));
+      const tilted = applyTilt(entries, mod.field, mod.by);
+      result = {};
+      for (const e of tilted) {
+        const { id, ...rest } = e;
+        result[id] = rest;
+      }
     }
   }
   
@@ -214,6 +264,23 @@ export function applyTierMods(tierWeights, mods, stat) {
     }
   }
   
+  return result;
+}
+
+/**
+ * Apply tilt mods to an array of entries for a given stage
+ * @param {Array<{id: string, weight: number, [key: string]: any}>} entries
+ * @param {string} stage
+ * @param {Mod[]} mods
+ * @returns {Array<{id: string, weight: number, [key: string]: any}>}
+ */
+export function applyTiltMods(entries, stage, mods) {
+  let result = entries.map(e => ({ ...e }));
+  for (const mod of mods) {
+    if (mod.op === 'tilt' && mod.stage === stage) {
+      result = applyTilt(result, mod.field, mod.by);
+    }
+  }
   return result;
 }
 

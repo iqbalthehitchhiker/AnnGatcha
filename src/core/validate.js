@@ -46,6 +46,9 @@ export function validate(data) {
   // Validate powers have tags
   validatePowerTags(data, errors);
 
+  // Validate power rank and tilt fields
+  validateRankAndTilt(data, errors);
+
   // Validate unknown tags aren't referenced
   validateKnownTags(data, errors);
 
@@ -212,6 +215,93 @@ function validatePowerTags(data, errors) {
     if (!power.tags || power.tags.length === 0) {
       errors.push(`Power ${id} has no tags`);
     }
+  }
+}
+
+/**
+ * Validate rank is 1-5 if present; validate tilt fields
+ */
+function validateRankAndTilt(data, errors) {
+  // Powers
+  for (const [id, power] of Object.entries(data.powers)) {
+    if (power && power.rank !== undefined && power.rank !== null) {
+      if (typeof power.rank !== 'number' || !Number.isFinite(power.rank) || power.rank < 1 || power.rank > 5) {
+        errors.push(`Power ${id} has invalid rank (must be a number 1-5)`);
+      }
+    }
+  }
+
+  // Weapon types/enchantments ranks if present
+  for (const [id, type] of Object.entries(data.weapons.types || {})) {
+    if (type && type.rank !== undefined && type.rank !== null) {
+      if (typeof type.rank !== 'number' || !Number.isFinite(type.rank) || type.rank < 1 || type.rank > 5) {
+        errors.push(`Weapon type ${id} has invalid rank (must be a number 1-5)`);
+      }
+    }
+  }
+  for (const [id, ench] of Object.entries(data.weapons.enchantments || {})) {
+    if (ench && ench.rank !== undefined && ench.rank !== null) {
+      if (typeof ench.rank !== 'number' || !Number.isFinite(ench.rank) || ench.rank < 1 || ench.rank > 5) {
+        errors.push(`Weapon enchantment ${id} has invalid rank (must be a number 1-5)`);
+      }
+    }
+  }
+
+  // Tilt fields on races/archetypes/weapons/powers if present
+  const checkTilt = (obj, context) => {
+    if (!obj || typeof obj !== 'object') return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === 'weaponTilt' || k === 'powerTilt') {
+        if (typeof v !== 'number' || !Number.isFinite(v)) {
+          errors.push(`${context} has invalid tilt value (must be a finite number)`);
+        } else if (Math.abs(v) > 2) {
+          errors.push(`${context} has tilt value outside allowed range (must be |value| <= 2)`);
+        }
+      }
+      if (k === 'mods' && Array.isArray(v)) {
+        for (const mod of v) {
+          if (mod && mod.op === 'tilt') {
+            if (typeof mod.by !== 'number' || !Number.isFinite(mod.by)) {
+              errors.push(`${context} has invalid tilt value (must be a finite number)`);
+            }
+            if (mod.field === 'rank' && context.toLowerCase().includes('weapon')) {
+              errors.push(`${context} mod has unknown field 'rank' for weapon stages`);
+            }
+            // general unknown field cases from spec: "unknown field values fail with specific errors (one fixture each)"
+            if (mod.field === 'rank' && mod.stage && mod.stage.startsWith('weapon')) {
+              errors.push(`${context} has unknown field 'rank' for weapon stage`);
+            }
+          }
+        }
+      }
+    }
+  };
+
+  for (const [id, r] of Object.entries(data.races)) {
+    checkTilt(r, `Race ${id}`);
+    if (r.mods) {
+      for (const mod of r.mods) {
+        if (mod && mod.op === 'tilt') {
+          if (mod.field === 'rank' && mod.stage && mod.stage.startsWith('weapon')) {
+            errors.push(`Race ${id} has unknown field 'rank' for weapon stage`);
+          }
+          // Check if field is plausible: powers can have rank, weapons have level/levelBonus
+          if (mod.stage === 'powers' && mod.field !== 'rank' && mod.field !== 'weight') {
+            // Check if any power has this field
+            const hasPowerWithField = Object.values(data.powers).some(p => p && mod.field in p);
+            if (!hasPowerWithField) {
+              errors.push(`Race ${id} tilt mod references unknown field '${mod.field}' for stage '${mod.stage}'`);
+            }
+          }
+          if (typeof mod.by !== 'number' || !Number.isFinite(mod.by)) {
+            errors.push(`Race ${id} has invalid tilt value (must be a finite number)`);
+          }
+        }
+      }
+    }
+  }
+  for (const [id, a] of Object.entries(data.archetypes)) {
+    checkTilt(a, `Archetype ${id}`);
   }
 }
 

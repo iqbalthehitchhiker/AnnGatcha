@@ -1,97 +1,40 @@
 {
-  "physical": {
-    "name": "Physical"
-  },
-  "combat": {
-    "name": "Combat"
-  },
-  "magic": {
-    "name": "Magic"
-  },
-  "cosmic": {
-    "name": "Cosmic"
-  },
-  "fire": {
-    "name": "Fire"
-  },
-  "storm": {
-    "name": "Storm"
-  },
-  "destruction": {
-    "name": "Destruction"
-  },
-  "mortal": {
-    "name": "Mortal"
-  },
-  "fey": {
-    "name": "Fey"
-  },
-  "draconic": {
-    "name": "Draconic"
-  },
-  "divine": {
-    "name": "Divine"
-  },
-  "soul_severing": {
-  "name": "Soul-Severing",
-  "bypassesDurability": true,
-  "blockedBy": ["soul_immunity"]
-  },
-  "soul_immunity": {
-  "name": "Soul Immunity"
-  
-  },
-  "physical_immunity": {
-    "name": "Physical Immunity"
-  },
-  "wounded": {
-    "name": "Wounded",
-    "carried": true,
-    "effect": {
-      "allStats": -1.0
-    }
-  },
-  "rival": {
-    "name": "Rival",
-    "carried": true
-  },
-  "blade": {
-    "name": "Blade"
-  },
-  "magic_weapon": {
-    "name": "Magic Weapon"
-  },
-  "legendary": {
-    "name": "Legendary"
-  },
-  "polearm": {
-    "name": "Polearm"
-  },
-  "concealable": {
-    "name": "Concealable"
-  },
-  "ranged": {
-    "name": "Ranged"
-  },
-  "blunt": {
-    "name": "Blunt"
-  },
-  "shield": {
-    "name": "Shield"
-  },
-  "healing": { 
-    "name": "Healing" },
+  "physical": { "name": "Physical" },
+  "combat": { "name": "Combat" },
+  "magic": { "name": "Magic" },
+  "cosmic": { "name": "Cosmic" },
+  "fire": { "name": "Fire" },
+  "storm": { "name": "Storm" },
+  "destruction": { "name": "Destruction" },
+  "mortal": { "name": "Mortal" },
+  "fey": { "name": "Fey" },
+  "draconic": { "name": "Draconic" },
+  "divine": { "name": "Divine" },
+  "soul_severing": { "name": "Soul-Severing", "bypassesDurability": true, "blockedBy": ["soul_immunity"] },
+  "soul_immunity": { "name": "Soul Immunity" },
+  "physical_immunity": { "name": "Physical Immunity" },
+  "wounded": { "name": "Wounded", "carried": true, "effect": { "allStats": -1.0 } },
+  "rival": { "name": "Rival", "carried": true },
+  "blade": { "name": "Blade" },
+  "magic_weapon": { "name": "Magic Weapon" },
+  "legendary": { "name": "Legendary" },
+  "polearm": { "name": "Polearm" },
+  "concealable": { "name": "Concealable" },
+  "ranged": { "name": "Ranged" },
+  "blunt": { "name": "Blunt" },
+  "shield": { "name": "Shield" },
+  "healing": { "name": "Healing" },
   "death": { "name": "Death" },
-"summoning": { "name": "Summoning" },
-"transformation": { "name": "Transformation" },
-"illusion": { "name": "Illusion" },
-"time": { "name": "Time" },
-"nature": { "name": "Nature" },
-"earth": { "name": "Earth" },
-"shadow": { "name": "Shadow" },
-"flight": { "name": "Flight" },
-"beast": { "name": "Beast" },
-"construct": { "name": "Construct" },
-"giant": { "name": "Giant" },
-"flying": { "name": "Flying" }
+  "summoning": { "name": "Summoning" },
+  "transformation": { "name": "Transformation" },
+  "illusion": { "name": "Illusion" },
+  "time": { "name": "Time" },
+  "nature": { "name": "Nature" },
+  "earth": { "name": "Earth" },
+  "shadow": { "name": "Shadow" },
+  "flight": { "name": "Flight" },
+  "beast": { "name": "Beast" },
+  "construct": { "name": "Construct" },
+  "giant": { "name": "Giant" },
+  "flying": { "name": "Flying" }
 }
