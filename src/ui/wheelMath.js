@@ -30,15 +30,16 @@ export function wedgeAngles(table) {
   
   const minAngleRad = (MIN_WEDGE_ANGLE_DEG * Math.PI) / 180;
   
-  // If table fits within max, process normally
+  // If table fits within max, process normally (preserving order)
   if (table.length <= MAX_WEDGES) {
     return applyMinimumAngle(table, minAngleRad);
   }
   
-  // Sort by probability descending and take top 15
+  // Take top 15 by probability, preserve their relative order in the original table
   const sorted = [...table].sort((a, b) => b.prob - a.prob);
-  const top15 = sorted.slice(0, MAX_WEDGES - 1);
-  const tail = sorted.slice(MAX_WEDGES - 1);
+  const top15Ids = new Set(sorted.slice(0, MAX_WEDGES - 1).map(e => e.id));
+  const top15 = table.filter(e => top15Ids.has(e.id));
+  const tail = table.filter(e => !top15Ids.has(e.id));
   
   // Create "Others" wedge with combined probability
   const othersProb = tail.reduce((sum, entry) => sum + entry.prob, 0);
@@ -106,10 +107,14 @@ function applyMinimumAngle(table, minAngleRad) {
     if (aboveTotal > surplus) {
       const scaleFactor = Math.max(0, (aboveTotal - surplus) / aboveTotal);
       
-      angles = [
-        ...belowMin.map(a => ({ ...a, angle: minAngleRad })),
-        ...aboveMin.map(a => ({ ...a, angle: Math.max(minAngleRad, a.angle * scaleFactor) }))
-      ];
+      // Preserve original order by updating in place
+      angles = angles.map(a => {
+        if (a.angle < minAngleRad) {
+          return { ...a, angle: minAngleRad };
+        } else {
+          return { ...a, angle: Math.max(minAngleRad, a.angle * scaleFactor) };
+        }
+      });
     } else {
       // Not enough space - set all to minimum
       angles = angles.map(a => ({ ...a, angle: minAngleRad }));
@@ -185,7 +190,7 @@ export function targetAngle(table, pickedId, jitter) {
  * Per spec §5: Used for live result text during animation
  * 
  * @param {{id: string, prob: number}[]} table
- * @param {number} angle - Angle in radians
+ * @param {number} angle - Angle in radians (pointer angle in wedge coordinate system)
  * @returns {string} Wedge ID at this angle
  */
 export function angleToWedge(table, angle) {
@@ -201,5 +206,8 @@ export function angleToWedge(table, angle) {
   }
   
   // Edge case: very close to 2π, return last wedge
+  if (Math.abs(normalized - 2 * Math.PI) < 1e-10) {
+    return wedges[0].id;
+  }
   return wedges[wedges.length - 1].id;
 }

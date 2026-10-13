@@ -80,8 +80,7 @@ body {
 }
 
 #wheel {
-  width: 100%;
-  max-width: 420px;
+  width: min(100%, 640px, 70vh);
   height: auto;
   border-radius: 50%;
   margin: 0 auto;
@@ -357,4 +356,152 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* Last spin panel */
+#last-spin {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  min-height: 60px;
+}
+
+#last-spin h3 {
+  color: var(--gold);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#last-spin .result {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+#last-spin .debug-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+#last-spin .badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+#last-spin .badge.match {
+  background: #2d5016;
+  color: #7bc043;
+}
+
+#last-spin .badge.mismatch {
+  background: #5c1010;
+  color: #ff6b6b;
+}
+
+/* Run history panel */
+#run-history {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#run-history h3 {
+  color: var(--gold);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#run-history .history-entry {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+#run-history .history-entry:last-child {
+  border-bottom: none;
+}
+
+/* Controls */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.5rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  min-height: 44px;
+  padding: 0.75rem 1.5rem;
+}
+
+button.secondary:hover {
+  background: var(--border);
+}
+
+/* Responsive touch targets */
+@media (max-width: 360px) {
+  button, .checkbox-label {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+  
+  #last-spin, #run-history {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 15px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.panel h3 {
+  margin-top: 0;
+  color: #d4af37;
+}
+
+#last-spin-content, #run-history-content, #debug-content {
+  font-family: monospace;
+  font-size: 14px;
+  color: #ccc;
+  white-space: pre-wrap;
+}
+
+#run-history-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#debug-content {
+  margin-top: 10px;
 }

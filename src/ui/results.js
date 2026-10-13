@@ -12,82 +12,84 @@
  * @returns {string} HTML string
  */
 export function renderCharacter(character, data) {
-  const race = data.races[character.race] || {};
-  const archetype = data.archetypes[character.archetype] || {};
-  const size = data.sizes[character.size] || {};
-  const trait = data.traits[character.trait] || {};
+  const parts = [];
   
-  const powers = (character.powers || [])
-    .map(id => (data.powers[id] || {}).name || id)
-    .join(', ') || 'None';
-  
-  let weapon = 'None';
-  if (character.weapon) {
-    const type = data.weapons.types[character.weapon.type] || {};
-    const ench = data.weapons.enchantments[character.weapon.enchantment] || {};
-    weapon = `${type.name || character.weapon.type} + ${ench.name || character.weapon.enchantment}`;
+  // Race
+  if (character.race) {
+    const race = data.races[character.race];
+    parts.push(`<p><strong>Race:</strong> ${race?.name || character.race}</p>`);
   }
   
-  const tier = 10 - Math.floor(character.strength);
-  
-  return `
-    <div class="info-row">
-      <span class="info-label">Race:</span>
-      <span class="info-value">${race.name || character.race}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Archetype:</span>
-      <span class="info-value">${archetype.name || character.archetype}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Size:</span>
-      <span class="info-value">${size.name || character.size}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Trait:</span>
-      <span class="info-value">${trait.name || character.trait}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Powers:</span>
-      <span class="info-value">${powers}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Weapon:</span>
-      <span class="info-value">${weapon}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Strength Tier:</span>
-      <span class="info-value">${tier}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Band:</span>
-      <span class="info-value">${escapeHtml(renderBand(character))}</span>
-    </div>
-  `;
-}
-
-/**
- * Render band (derived from character stats per requirement)
- * @param {any} character
- * @returns {string}
- */
-function renderBand(character) {
-  // Band is in the result, but we can also compute it for display
-  // Per FR-X1: Band from effective strength
-  let effStr = character.strength;
-  if (character.weapon) {
-    // This is a simplified calculation - the actual one is in core
-    effStr = character.strength; // The result should contain band already
+  // Archetype
+  if (character.archetype) {
+    const archetype = data.archetypes[character.archetype];
+    parts.push(`<p><strong>Archetype:</strong> ${archetype?.name || character.archetype}</p>`);
   }
-  const bandTier = 10 - Math.floor(effStr);
   
-  // Map tier to band
-  if (bandTier >= 10 || bandTier === 9) return '10-9';
-  if (bandTier === 8 || bandTier === 7) return '8-7';
-  if (bandTier >= 4 && bandTier <= 6) return '6-4';
-  if (bandTier === 3 || bandTier === 2) return '3-2';
-  if (bandTier <= 1) return '1-0';
-  return 'unknown';
+  // Size
+  if (character.size) {
+    const size = data.sizes[character.size];
+    parts.push(`<p><strong>Size:</strong> ${size?.name || character.size}</p>`);
+  }
+  
+  // Trait
+  if (character.trait) {
+    const trait = data.traits[character.trait];
+    parts.push(`<p><strong>Trait:</strong> ${trait?.name || character.trait}</p>`);
+  }
+  
+  // Power count
+  if (character.powerCount !== undefined) {
+    parts.push(`<p><strong>Power Count:</strong> ${character.powerCount === 'all' ? 'All powers' : character.powerCount}</p>`);
+  }
+  
+  // Powers
+  if (character.powers && character.powers.length > 0) {
+    const powerNames = character.powers.map(id => data.powers[id]?.name || id);
+    parts.push(`<p><strong>Powers:</strong> ${powerNames.join(', ')}</p>`);
+  }
+  
+  // Strength tier and level
+  if (character.strength !== undefined) {
+    const tier = character.strength.tier;
+    const level = character.strength.level;
+    parts.push(`<p><strong>Strength:</strong> Tier ${tier} (Level ${level.toFixed(2)})</p>`);
+  }
+  
+  // Speed tier with offset
+  if (character.speed !== undefined) {
+    const tier = character.speed.tier;
+    const offset = character.speed.offset || 0;
+    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
+    parts.push(`<p><strong>Speed:</strong> Tier ${tier} (${offsetStr})</p>`);
+  }
+  
+  // Durability tier with offset
+  if (character.durability !== undefined) {
+    const tier = character.durability.tier;
+    const offset = character.durability.offset || 0;
+    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
+    parts.push(`<p><strong>Durability:</strong> Tier ${tier} (${offsetStr})</p>`);
+  }
+  
+  // Weapon
+  if (character.weapon) {
+    const weaponType = data.weapons[character.weapon.type];
+    const enchantment = character.weapon.enchantment ? data.weapons[character.weapon.enchantment] : null;
+    const weaponStr = enchantment 
+      ? `${enchantment.name} ${weaponType?.name || character.weapon.type}`
+      : weaponType?.name || character.weapon.type;
+    parts.push(`<p><strong>Weapon:</strong> ${weaponStr}</p>`);
+  } else {
+    parts.push(`<p><strong>Weapon:</strong> None</p>`);
+  }
+  
+  // Band
+  if (character.band) {
+    parts.push(`<p><strong>Band:</strong> ${character.band}</p>`);
+  }
+  
+  return parts.join('');
 }
 
 /**

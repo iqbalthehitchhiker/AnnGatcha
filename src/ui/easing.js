@@ -74,6 +74,7 @@ export function createCubicBezierEasing(p1x, p1y, p2x, p2y) {
 }
 
 /**
- * Default easing: cubic-bezier(0.44, -0.205, 0, 1.13)
+ * Default easing: cubic-bezier(0.17, 0.67, 0.12, 0.99)
+ * Monotonic, no backward motion or overshoot
  */
-export const defaultEasing = createCubicBezierEasing(0.44, -0.205, 0, 1.13);
+export const defaultEasing = createCubicBezierEasing(0.17, 0.67, 0.12, 0.99);

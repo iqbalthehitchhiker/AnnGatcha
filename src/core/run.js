@@ -4,6 +4,7 @@ import { createRngFromRedoMap } from './rng.js';
 import { pick, computeTraceLogProb, createTable } from './picker.js';
 import { collectMods, applyTierMods, applyOffsetMods, applyTiltMods } from './mods.js';
 import { executeChain } from './chain.js';
+import { resultingTier } from './stats.js';
 
 /**
  * @typedef {Object} Character
@@ -373,12 +374,12 @@ function executeSpeedOffsetStage(data, character, rng, trace) {
   
   const entries = createTable(offsets);
   
-  // Add labels: "Speed: Tier N" where N is from resulting tier
+  // Add labels: "Speed: Tier N (+offset)" where N is from resulting tier
   const entriesWithLabels = entries.map(e => {
     const offset = parseFloat(e.id);
-    const resultingLevel = Math.max(0, Math.min(character.strength + offset, 10.999));
-    const tier = 10 - Math.floor(resultingLevel);
-    return { ...e, label: `Speed: Tier ${tier}` };
+    const tier = resultingTier(character.strength, offset);
+    const sign = offset >= 0 ? '+' : '';
+    return { ...e, label: `Speed: Tier ${tier} (${sign}${offset})` };
   });
   
   const result = pick(entriesWithLabels, rng, 'speedOffset');
@@ -411,12 +412,12 @@ function executeDurOffsetStage(data, character, rng, trace) {
   
   const entries = createTable(offsets);
   
-  // Add labels: "Durability: Tier N" where N is from resulting tier
+  // Add labels: "Durability: Tier N (+offset)" where N is from resulting tier
   const entriesWithLabels = entries.map(e => {
     const offset = parseFloat(e.id);
-    const resultingLevel = Math.max(0, Math.min(character.strength + offset, 10.999));
-    const tier = 10 - Math.floor(resultingLevel);
-    return { ...e, label: `Durability: Tier ${tier}` };
+    const tier = resultingTier(character.strength, offset);
+    const sign = offset >= 0 ? '+' : '';
+    return { ...e, label: `Durability: Tier ${tier} (${sign}${offset})` };
   });
   
   const result = pick(entriesWithLabels, rng, 'durOffset');

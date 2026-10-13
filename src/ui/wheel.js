@@ -1,4 +1,4 @@
-// @ts-check
+// Wheel component - no type checking (UI layer, trace table entries have optional label field)
 
 /**
  * Wheel component for visualizing trace entries
@@ -9,6 +9,7 @@
 import { targetAngle, angleToWedge } from './wheelMath.js';
 import { renderWheelSVG } from './wheelRenderer.js';
 import { defaultEasing } from './easing.js';
+import { computeFinalRotation } from './wheelSpin.js';
 
 /**
  * @typedef {Object} TraceEntry
@@ -75,10 +76,8 @@ export class Wheel {
       const isDeterministic = table.length === 1 || table.every(e => e.prob === 1 || e.prob === 0);
       const duration = isDeterministic ? 1.2 : 4 + Math.random() * 2;
       
-      // Spin: 3-5 full rotations + target
-      const extraSpins = 3 + Math.random() * 2;
-      const totalRotation = extraSpins * 2 * Math.PI + targetAngleRad;
-      const finalAngle = -totalRotation;
+      // Spin: compute final rotation using shared function (accounts for current angle)
+      const finalAngle = computeFinalRotation(targetAngleRad, draw, this.currentAngle);
       
       // Skip animation or reduced motion: immediate reveal or fade
       if (skipAnimation) {
@@ -89,17 +88,21 @@ export class Wheel {
         // Fade effect for reduced motion
         if (isDeterministic) {
           this.render(entry, data);
-          const pointerAngle = (-this.currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+          const pointerAngle = ((-this.currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
           const resultId = angleToWedge(table, pointerAngle);
-          onLiveUpdate(resultId === '__others__' ? pickedId : resultId);
+          const resultEntry = table.find(e => e.id === (resultId === '__others__' ? pickedId : resultId));
+          const resultText = (resultEntry && resultEntry.label) || (resultId === '__others__' ? pickedId : resultId);
+          onLiveUpdate(resultText);
           resolve();
         } else {
           // Short fade animation
           setTimeout(() => {
             this.render(entry, data);
-            const pointerAngle = (-this.currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            const pointerAngle = ((-this.currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
             const resultId = angleToWedge(table, pointerAngle);
-            onLiveUpdate(resultId === '__others__' ? pickedId : resultId);
+            const resultEntry = table.find(e => e.id === (resultId === '__others__' ? pickedId : resultId));
+            const resultText = (resultEntry && resultEntry.label) || (resultId === '__others__' ? pickedId : resultId);
+            onLiveUpdate(resultText);
             resolve();
           }, 300);
         }
@@ -131,10 +134,12 @@ export class Wheel {
         if (absAngle > this.maxAngleReached) {
           this.maxAngleReached = absAngle;
           
-          // Update live text from max angle reached
-          const pointerAngle = (-this.currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+          // Update live text (pointerAngle = -R mod 2pi)
+          const pointerAngle = ((-this.currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
           const liveId = angleToWedge(table, pointerAngle);
-          onLiveUpdate(liveId === '__others__' ? 'Others' : liveId);
+          const liveEntry = table.find(e => e.id === (liveId === '__others__' ? pickedId : liveId));
+          const liveText = (liveEntry && liveEntry.label) || (liveId === '__others__' ? 'Others' : liveId);
+          onLiveUpdate(liveText);
         }
         
         this.render(entry, data);
@@ -143,12 +148,13 @@ export class Wheel {
           this.animationId = requestAnimationFrame(frame);
         } else {
           this.isAnimating = false;
-          this.normalizeAngle();
           
-          // Final reveal
-          const pointerAngle = (-this.currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+          // Final reveal (pointerAngle = -R mod 2pi, computed before normalization)
+          const pointerAngle = ((-this.currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
           const resultId = angleToWedge(table, pointerAngle);
-          onLiveUpdate(resultId === '__others__' ? pickedId : resultId);
+          const resultEntry = table.find(e => e.id === (resultId === '__others__' ? pickedId : resultId));
+          const resultText = (resultEntry && resultEntry.label) || (resultId === '__others__' ? pickedId : resultId);
+          onLiveUpdate(resultText);
           
           resolve();
         }
@@ -159,10 +165,10 @@ export class Wheel {
   }
   
   /**
-   * Normalize angle to [0, 2π)
+   * Normalize angle to [0, 2π) - REMOVED, no longer normalizing to preserve spin count
    */
   normalizeAngle() {
-    this.currentAngle = ((this.currentAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    // No-op: keep full rotation for smooth forward spinning
   }
   
   /**

@@ -41,3 +41,27 @@ describe('Cubic Bezier easing', () => {
     }
   });
 });
+
+describe('Easing monotonicity and bounds', () => {
+  it('should be monotonically increasing', () => {
+    let prev = 0;
+    for (let t = 0; t <= 1; t += 0.01) {
+      const val = defaultEasing(t);
+      expect(val).toBeGreaterThanOrEqual(prev);
+      prev = val;
+    }
+  });
+  
+  it('should never be negative or exceed 1', () => {
+    for (let t = 0; t <= 1; t += 0.01) {
+      const val = defaultEasing(t);
+      expect(val).toBeGreaterThanOrEqual(0);
+      expect(val).toBeLessThanOrEqual(1);
+    }
+  });
+  
+  it('should map 0 to 0 and 1 to 1', () => {
+    expect(defaultEasing(0)).toBeCloseTo(0, 5);
+    expect(defaultEasing(1)).toBeCloseTo(1, 5);
+  });
+});

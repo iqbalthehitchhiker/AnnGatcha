@@ -28,7 +28,6 @@
       <div id="progress" class="hidden">
         <div class="progress-text">Pick <span id="progress-current">0</span> of <span id="progress-total">0</span></div>
         <div class="progress-bar"><div id="progress-fill"></div></div>
-        <div id="progress-summary"></div>
       </div>
       
       <details id="settings">
@@ -45,6 +44,9 @@
           <div class="setting-group">
             <label><input type="checkbox" id="mute-audio"> Mute audio</label>
           </div>
+          <div class="setting-group">
+            <label><input type="checkbox" id="debug-toggle"> Debug info</label>
+          </div>
         </div>
       </details>
       
@@ -56,6 +58,24 @@
         <div id="scenarios-info"></div>
         
         <div id="rarity-info"></div>
+      </div>
+      
+      <!-- Last Spin Panel -->
+      <div id="last-spin-panel" class="panel hidden">
+        <h3>Last Spin</h3>
+        <div id="last-spin-content"></div>
+      </div>
+      
+      <!-- Run History Panel -->
+      <div id="run-history-panel" class="panel hidden">
+        <h3>Run History</h3>
+        <div id="run-history-content"></div>
+      </div>
+      
+      <!-- Debug Panel -->
+      <div id="debug-panel" class="panel hidden">
+        <h3>Debug Info</h3>
+        <div id="debug-content"></div>
       </div>
     </div>
   </div>

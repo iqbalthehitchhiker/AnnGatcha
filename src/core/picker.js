@@ -4,6 +4,7 @@
  * @typedef {Object} PickEntry
  * @property {string} id - Entry identifier
  * @property {number} weight - Relative weight (must be > 0)
+ * @property {string} [label] - Optional display label
  */
 
 /**
@@ -11,6 +12,7 @@
  * @property {string} id - Entry identifier
  * @property {number} weight - Original weight
  * @property {number} prob - Normalized probability
+ * @property {string} [label] - Optional display label (for speed/durability stages)
  */
 
 /**
@@ -53,12 +55,20 @@ export function pick(entries, rng, stageId) {
     totalWeight += entry.weight;
   }
 
-  // Normalize weights to probabilities
-  const table = entries.map(entry => ({
-    id: entry.id,
-    weight: entry.weight,
-    prob: entry.weight / totalWeight
-  }));
+  // Normalize weights to probabilities (include label if present)
+  const table = entries.map(entry => {
+    const tableEntry = {
+      id: entry.id,
+      weight: entry.weight,
+      prob: entry.weight / totalWeight
+    };
+    // @ts-ignore - PickEntry may have optional label field
+    if (entry.label) {
+      // @ts-ignore
+      tableEntry.label = entry.label;
+    }
+    return tableEntry;
+  });
 
   // Consume exactly one draw
   const draw = rng();

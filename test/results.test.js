@@ -31,12 +31,8 @@ function createTestData() {
       flight: { name: 'Flight' }
     },
     weapons: {
-      types: {
-        sword: { name: 'Sword' }
-      },
-      enchantments: {
-        fire: { name: 'Fire' }
-      }
+      sword: { name: 'Sword' },
+      fire: { name: 'Fire' }
     },
     scenarios: {
       fight_monster: { name: 'Fight a Monster' }
@@ -65,9 +61,9 @@ function createFixtureRun() {
         type: 'sword',
         enchantment: 'fire'
       },
-      strength: 5.5,
-      speed: 5.0,
-      durability: 6.0,
+      strength: { tier: 6, level: 5.5 },
+      speed: { tier: 6, offset: 0 },
+      durability: { tier: 5, offset: 1 },
       powerCount: 2
     },
     band: '6-4',
@@ -102,8 +98,9 @@ describe('Results rendering', () => {
     expect(html).toContain('Brave');
     expect(html).toContain('Super Strength');
     expect(html).toContain('Flight');
-    expect(html).toContain('Sword + Fire');
-    expect(html).toContain('Strength Tier:');
+    expect(html).toContain('Fire');
+    expect(html).toContain('Sword');
+    expect(html).toContain('Tier 6');
   });
   
   it('renders scenarios with opponent names', () => {

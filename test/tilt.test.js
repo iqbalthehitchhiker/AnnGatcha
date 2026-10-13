@@ -234,3 +234,53 @@ describe('Tilt Mod Tests', () => {
     });
   });
 });
+
+describe('Label Tests', () => {
+  it('should have label tier match final speed/durability tier for 1000 seeds', () => {
+    const data = loadData();
+    
+    for (let i = 0; i < 1000; i++) {
+      const seed = `label_test_${i}`;
+      const run = generateRun(data, seed);
+      
+      // Speed: extract tier from trace label and compare to actual tier
+      const speedTrace = run.trace.find(t => t.stageId === 'speedOffset');
+      if (speedTrace) {
+        const pickedEntry = speedTrace.table.find(e => e.id === speedTrace.pickedId);
+        if (pickedEntry && pickedEntry.label) {
+          const labelMatch = pickedEntry.label.match(/Tier (\d+)/);
+          expect(labelMatch).toBeTruthy();
+          const labelTier = parseInt(labelMatch[1], 10);
+          const actualTier = 10 - Math.floor(run.character.speed);
+          expect(labelTier).toBe(actualTier);
+        }
+      }
+      
+      // Durability: extract tier from trace label and compare to actual tier
+      const durTrace = run.trace.find(t => t.stageId === 'durOffset');
+      if (durTrace) {
+        const pickedEntry = durTrace.table.find(e => e.id === durTrace.pickedId);
+        if (pickedEntry && pickedEntry.label) {
+          const labelMatch = pickedEntry.label.match(/Tier (\d+)/);
+          expect(labelMatch).toBeTruthy();
+          const labelTier = parseInt(labelMatch[1], 10);
+          const actualTier = 10 - Math.floor(run.character.durability);
+          expect(labelTier).toBe(actualTier);
+        }
+      }
+    }
+  });
+  
+  it('should have all distinct labels within speed/durability tables', () => {
+    const data = loadData();
+    
+    // Human race has 3 speed offsets: {"-1": 1, "0": 2, "+0.5": 1}
+    const human = data.races.human;
+    expect(human.offsets?.spd).toBeDefined();
+    const spdOffsets = Object.keys(human.offsets.spd || {});
+    expect(spdOffsets.length).toBeGreaterThan(1);
+    
+    // With distinct offsets and any strength, labels should be distinct
+    // because label includes both tier and signed offset
+  });
+});

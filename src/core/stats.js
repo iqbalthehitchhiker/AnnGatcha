@@ -349,3 +349,24 @@ export function getBandFromEffStr(effStr, data) {
   // No matching band - data validation should have caught this
   throw new Error(`No band found for tier ${bandTier} (effStr ${effStr})`);
 }
+
+/**
+ * Compute tier from level
+ * @param {number} level - Level in [0, 11)
+ * @returns {number} Tier (0-10)
+ */
+export function tierFromLevel(level) {
+  return 10 - Math.floor(level);
+}
+
+/**
+ * Compute resulting tier from base strength and offset
+ * Used for speed/durability tier labels
+ * @param {number} baseStrength - Base strength level
+ * @param {number} offset - Offset to apply
+ * @returns {number} Resulting tier after clamping to [0, 11)
+ */
+export function resultingTier(baseStrength, offset) {
+  const resultingLevel = Math.max(0, Math.min(baseStrength + offset, 10.999));
+  return tierFromLevel(resultingLevel);
+}

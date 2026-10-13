@@ -12,6 +12,7 @@ import { generateRun } from '../core/run.js';
 import { Wheel, getStageLabel } from './wheel.js';
 import { renderCharacter, renderScenarios, renderRarity } from './results.js';
 import { computePercentile } from './rarity.js';
+import { getRevealedPicks } from './anti-spoiler.js';
 
 /** @type {any} */
 let gameData = null;
@@ -33,6 +34,14 @@ let currentTrace = [];
 
 /** @type {boolean} */
 let waitingForSpin = false;
+
+
+
+/** @type {any[]} */
+let runHistory = [];
+
+/** @type {boolean} */
+let debugMode = false;
 
 /**
  * Initialize the application
@@ -86,6 +95,7 @@ function setupEventListeners() {
   const skipButton = document.getElementById('skip-button');
   const skipAllButton = document.getElementById('skip-all-button');
   const seedInput = /** @type {HTMLInputElement} */ (document.getElementById('seed-input'));
+  const debugToggle = /** @type {HTMLInputElement} */ (document.getElementById('debug-toggle'));
   
   if (spinButton) {
     spinButton.addEventListener('click', handleSpinClick);
@@ -104,6 +114,13 @@ function setupEventListeners() {
       if (e.key === 'Enter' && !wheel?.isAnimating) {
         startNewRun();
       }
+    });
+  }
+  
+  if (debugToggle) {
+    debugToggle.addEventListener('change', () => {
+      debugMode = debugToggle.checked;
+      updateDebugPanel();
     });
   }
 }
@@ -226,6 +243,11 @@ function handleSpinClick() {
     showElement('skip-button', false);
     showElement('skip-all-button', false);
     
+    // Update panels
+    updateLastSpinPanel();
+    updateRunHistoryPanel();
+    updateDebugPanel();
+    
     // Wait 500ms then next stage
     setTimeout(() => {
       if (currentTraceIndex < currentTrace.length) {
@@ -310,6 +332,16 @@ function finishRun() {
   showElement('results', true);
   waitingForSpin = false;
   updateButtons();
+  
+  // Add to run history
+  runHistory.unshift({
+    seed: document.getElementById('seed-display')?.textContent || 'unknown',
+    character: currentRun.character,
+    logProbability: currentRun.logProbability,
+    timestamp: Date.now()
+  });
+  if (runHistory.length > 10) runHistory = runHistory.slice(0, 10);
+  updateRunHistoryPanel();
 }
 
 /**
@@ -358,7 +390,7 @@ function updateButtons() {
  * Update progress display
  */
 function updateProgress() {
-  if (currentTrace.length === 0) {
+  if (!currentRun) {
     showElement('progress', false);
     return;
   }
@@ -368,29 +400,49 @@ function updateProgress() {
   const progressCurrent = document.getElementById('progress-current');
   const progressTotal = document.getElementById('progress-total');
   const progressFill = document.getElementById('progress-fill');
-  const progressSummary = document.getElementById('progress-summary');
+  
+  // M = total picks in trace (stages + scenarios)
+  const totalPicks = currentRun.trace.filter((/** @type {any} */ e) => e.pickedId).length;
+  
+  // N = completed spins (currentTraceIndex is next to show, so completed = currentTraceIndex)
+  const completedSpins = currentTraceIndex;
   
   if (progressCurrent) {
-    progressCurrent.textContent = String(currentTraceIndex);
+    progressCurrent.textContent = String(completedSpins);
   }
   
   if (progressTotal) {
-    progressTotal.textContent = String(currentTrace.length);
+    progressTotal.textContent = String(totalPicks);
   }
   
   if (progressFill) {
-    const percent = currentTrace.length > 0 ? (currentTraceIndex / currentTrace.length) * 100 : 0;
+    const percent = totalPicks > 0 ? (completedSpins / totalPicks) * 100 : 0;
     progressFill.style.width = `${percent}%`;
   }
-  
-  if (progressSummary && currentRun && currentTraceIndex > 0) {
-    const parts = [];
-    if (currentRun.character.race) parts.push(gameData.races[currentRun.character.race]?.name || currentRun.character.race);
-    if (currentRun.character.archetype) parts.push(gameData.archetypes[currentRun.character.archetype]?.name || currentRun.character.archetype);
-    progressSummary.textContent = parts.length > 0 ? parts.join(' • ') : '';
-  } else if (progressSummary) {
-    progressSummary.textContent = '';
+}
+
+/**
+ * Format stage result with label
+ * @param {string} stageId
+ * @param {string} pickedId
+ * @returns {string}
+ */
+function formatStageResult(stageId, pickedId) {
+  if (stageId === 'race') return gameData.races[pickedId]?.name || pickedId;
+  if (stageId === 'archetype') return gameData.archetypes[pickedId]?.name || pickedId;
+  if (stageId === 'size') return gameData.sizes[pickedId]?.name || pickedId;
+  if (stageId === 'trait') return gameData.traits[pickedId]?.name || pickedId;
+  if (stageId === 'powerCount') return pickedId === 'all' ? 'All powers' : `${pickedId} powers`;
+  if (stageId.startsWith('powers:')) {
+    return gameData.powers[pickedId]?.name || pickedId;
   }
+  if (stageId === 'strength') return `Tier ${pickedId}`;
+  if (stageId === 'speedOffset') return pickedId === '0' ? 'Speed +0' : `Speed ${pickedId}`;
+  if (stageId === 'durOffset') return pickedId === '0' ? 'Durability +0' : `Durability ${pickedId}`;
+  if (stageId === 'weapon') return pickedId === 'yes' ? 'Has weapon' : 'No weapon';
+  if (stageId === 'weapon:type') return gameData.weapons[pickedId]?.name || pickedId;
+  if (stageId === 'weapon:enchantment') return gameData.weapons[pickedId]?.name || pickedId;
+  return pickedId;
 }
 
 /**
@@ -419,6 +471,124 @@ function showError(message) {
     errorElement.textContent = message;
     showElement('error', true);
   }
+}
+
+/**
+ * Update last spin panel (anti-spoiler: only show completed spin)
+ */
+function updateLastSpinPanel() {
+  const panel = document.getElementById('last-spin-panel');
+  const content = document.getElementById('last-spin-content');
+  if (!panel || !content || !currentRun) return;
+  
+  const revealed = getRevealedPicks(currentTraceIndex, currentRun.trace);
+  if (revealed.length === 0) {
+    showElement('last-spin-panel', false);
+    return;
+  }
+  
+  const lastPick = revealed[revealed.length - 1];
+  showElement('last-spin-panel', false);
+  content.textContent = `Stage: ${lastPick.stageId}\nPicked: ${lastPick.pickedId}`;
+  showElement('last-spin-panel', true);
+}
+
+/**
+ * Update run history panel
+ */
+function updateRunHistoryPanel() {
+  const panel = document.getElementById('run-history-panel');
+  const content = document.getElementById('run-history-content');
+  if (!panel || !content || !currentRun) return;
+  
+  const lines = [];
+  
+  // Current run revealed picks (anti-spoiler: only show spins that have completed)
+  const shouldReveal = getRevealedPicks(currentTraceIndex, currentRun.trace);
+  if (shouldReveal.length > 0) {
+    lines.push('Current Run:');
+    shouldReveal.forEach(pick => {
+      const stageName = getStageLabelLocal(pick.stageId);
+      const result = formatStageResult(pick.stageId, pick.pickedId);
+      lines.push(`  ${stageName}: ${result}`);
+    });
+  }
+  
+  // Past runs
+  if (runHistory.length > 0) {
+    if (lines.length > 0) lines.push('');
+    lines.push('Past Runs:');
+    runHistory.forEach((run, i) => {
+      const race = run.character.race ? gameData.races[run.character.race]?.name || run.character.race : '?';
+      const arch = run.character.archetype ? gameData.archetypes[run.character.archetype]?.name || run.character.archetype : '?';
+      lines.push(`  ${i + 1}. ${race} ${arch} (logP=${run.logProbability.toFixed(2)})`);
+    });
+  }
+  
+  if (lines.length === 0) {
+    showElement('run-history-panel', false);
+    return;
+  }
+  
+  content.textContent = lines.join('\n');
+  showElement('run-history-panel', true);
+}
+
+/**
+ * Get stage label for display (local implementation)
+ * @param {string} stageId
+ * @returns {string}
+ */
+function getStageLabelLocal(stageId) {
+  const labels = {
+    'race': 'Race',
+    'archetype': 'Archetype',
+    'size': 'Size',
+    'trait': 'Trait',
+    'powerCount': 'Power Count',
+    'strength': 'Strength Tier',
+    'speedOffset': 'Speed',
+    'durOffset': 'Durability',
+    'weapon': 'Weapon',
+    'weapon:type': 'Weapon Type',
+    'weapon:enchantment': 'Weapon Enchantment'
+  };
+  
+  if (stageId.startsWith('powers:')) {
+    return `Power ${parseInt(stageId.split(':')[1]) + 1}`;
+  }
+  
+  return labels[stageId] || stageId;
+}
+
+/**
+ * Update debug panel
+ */
+function updateDebugPanel() {
+  const panel = document.getElementById('debug-panel');
+  const content = document.getElementById('debug-content');
+  if (!panel || !content) return;
+  
+  showElement('debug-panel', true);
+  
+  if (!debugMode) {
+    content.textContent = '';
+    return;
+  }
+  
+  const lines = [
+    `Current trace index: ${currentTraceIndex} / ${currentTrace.length}`
+  ];
+  
+  if (currentRun) {
+    const revealed = getRevealedPicks(currentTraceIndex, currentRun.trace);
+    lines.push(`Revealed picks: ${revealed.length}`);
+    lines.push(`Picks: ${revealed.map(p => `${p.stageId}=${p.pickedId}`).join(', ')}`);
+    lines.push(`Log probability: ${currentRun.logProbability.toFixed(4)}`);
+    lines.push(`Effective strength: ${currentRun.effStr.toFixed(2)}`);
+  }
+  
+  content.textContent = lines.join('\n');
 }
 
 // Start the app
