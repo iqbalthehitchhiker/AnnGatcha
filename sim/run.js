@@ -80,7 +80,7 @@ function computeDataHash(data) {
  * 
  * @param {number} n - Number of runs
  * @param {any} data - Game data
- * @returns {any} Statistics object
+ * @returns {{stats: any, results: any[]}} Statistics and results array
  */
 function runSimulation(n, data) {
   const stats = {
@@ -115,6 +115,8 @@ function runSimulation(n, data) {
     anyRepeats: 0
   };
   
+  const results = [];
+  
   console.log(`Running ${n} simulations...`);
   
   for (let i = 0; i < n; i++) {
@@ -125,6 +127,7 @@ function runSimulation(n, data) {
     try {
       const seed = `sim_${i}`;
       const result = generateRun(data, seed);
+      results.push(result);
       
       // Collect race distribution
       const race = result.character.race;
@@ -211,7 +214,7 @@ function runSimulation(n, data) {
   
   console.log(`Simulation complete: ${n} runs, ${stats.errors} errors`);
   
-  return stats;
+  return { stats, results };
 }
 
 /**
@@ -674,7 +677,7 @@ function main() {
   console.log('Validation passed.');
   
   // Run simulation
-  const stats = runSimulation(n, data);
+  const { stats, results } = runSimulation(n, data);
   
   // Print statistics
   printStats(stats);
@@ -686,6 +689,9 @@ function main() {
     writePercentiles(percentiles);
   }
   
+  // CHECKPOINT 3: Additional analytics
+  analyzeCheckpoint3(results, data);
+  
   // Exit with error if any runs failed
   if (stats.errors > 0) {
     console.error(`\n${stats.errors} runs failed`);
@@ -694,3 +700,105 @@ function main() {
 }
 
 main();
+
+/**
+ * CHECKPOINT 3: Analyze weapon levels and power ranks by race and archetype
+ * @param {any[]} results - Array of run results
+ * @param {any} data - Game data
+ */
+function analyzeCheckpoint3(results, data) {
+  const byRace = {};
+  const byArchetype = {};
+  
+  for (const run of results) {
+    const race = run.character.race;
+    const archetype = run.character.archetype;
+    
+    if (!byRace[race]) {
+      byRace[race] = { weaponLevels: [], weaponYes: 0, total: 0, powerRanks: [0, 0, 0, 0, 0] };
+    }
+    if (!byArchetype[archetype]) {
+      byArchetype[archetype] = { powerRanks: [0, 0, 0, 0, 0] };
+    }
+    
+    byRace[race].total++;
+    
+    if (run.character.weapon) {
+      byRace[race].weaponYes++;
+      const weaponLevel = calculateWeaponLevel(run.character.weapon, data);
+      byRace[race].weaponLevels.push(weaponLevel);
+    }
+    
+    if (run.character.powers) {
+      for (const powerId of run.character.powers) {
+        const power = data.powers[powerId];
+        if (power && power.rank >= 1 && power.rank <= 5) {
+          byRace[race].powerRanks[power.rank - 1]++;
+          byArchetype[archetype].powerRanks[power.rank - 1]++;
+        }
+      }
+    }
+  }
+  
+  console.log('\n=== CHECKPOINT 3: ANALYTICS ===\n');
+  
+  console.log('Table 1: Weapon Stats by Race');
+  console.log('Race          | Mean Weapon Level | Weapon Yes Rate');
+  console.log('--------------|-------------------|----------------');
+  
+  for (const raceId of Object.keys(byRace).sort()) {
+    const stats = byRace[raceId];
+    const raceName = (data.races[raceId]?.name || raceId).padEnd(13);
+    const meanLevel = stats.weaponLevels.length > 0
+      ? (stats.weaponLevels.reduce((a, b) => a + b, 0) / stats.weaponLevels.length).toFixed(2)
+      : 'N/A';
+    const yesRate = ((stats.weaponYes / stats.total) * 100).toFixed(1);
+    console.log(`${raceName} | ${String(meanLevel).padStart(17)} | ${String(yesRate).padStart(14)}%`);
+  }
+  
+  console.log('\nTable 2: Power Rank Distribution by Race');
+  console.log('Race          | Rank 1 | Rank 2 | Rank 3 | Rank 4 | Rank 5');
+  console.log('--------------|--------|--------|--------|--------|--------');
+  
+  for (const raceId of Object.keys(byRace).sort()) {
+    const stats = byRace[raceId];
+    const raceName = (data.races[raceId]?.name || raceId).padEnd(13);
+    const r1 = String(stats.powerRanks[0]).padStart(6);
+    const r2 = String(stats.powerRanks[1]).padStart(6);
+    const r3 = String(stats.powerRanks[2]).padStart(6);
+    const r4 = String(stats.powerRanks[3]).padStart(6);
+    const r5 = String(stats.powerRanks[4]).padStart(6);
+    console.log(`${raceName} | ${r1} | ${r2} | ${r3} | ${r4} | ${r5}`);
+  }
+  
+  console.log('\nTable 3: Power Rank Distribution by Archetype');
+  console.log('Archetype     | Rank 1 | Rank 2 | Rank 3 | Rank 4 | Rank 5');
+  console.log('--------------|--------|--------|--------|--------|--------');
+  
+  for (const archetypeId of Object.keys(byArchetype).sort()) {
+    const stats = byArchetype[archetypeId];
+    const archetypeName = (data.archetypes[archetypeId]?.name || archetypeId).padEnd(13);
+    const r1 = String(stats.powerRanks[0]).padStart(6);
+    const r2 = String(stats.powerRanks[1]).padStart(6);
+    const r3 = String(stats.powerRanks[2]).padStart(6);
+    const r4 = String(stats.powerRanks[3]).padStart(6);
+    const r5 = String(stats.powerRanks[4]).padStart(6);
+    console.log(`${archetypeName} | ${r1} | ${r2} | ${r3} | ${r4} | ${r5}`);
+  }
+}
+
+/**
+ * Calculate weapon level from weapon object
+ * @param {any} weapon
+ * @param {any} data
+ * @returns {number}
+ */
+function calculateWeaponLevel(weapon, data) {
+  const type = data.weapons.types?.[weapon.type];
+  const enchantment = weapon.enchantment ? data.weapons.enchantments?.[weapon.enchantment] : null;
+  
+  const typeLevel = type?.level || 0;
+  const enchBonus = enchantment?.levelBonus || 0;
+  
+  return typeLevel + enchBonus;
+}
